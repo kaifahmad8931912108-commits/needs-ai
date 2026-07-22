@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEEDS AI - AI Business Learning Platform</title>
+  <meta name="description" content="Learn business, generate ideas, create plans and grow your income using AI.">
+  <meta name="keywords" content="business ideas, AI business tools, startup ideas, earn money online, business learning platform">
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ==========================================================================
+       1. CORE BRAND STYLES & RESET
+       ========================================================================== */
+    :root {
+      --bg-dark: #050505;
+      --card-bg: rgba(20, 20, 25, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+      --gold-text: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      --electric-blue: #00f0ff;
+      --electric-glow: rgba(0, 240, 255, 0.35);
+      --text-main: #ffffff;
+      --text-muted: #a1a1aa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Ambient Background Particles Glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(191, 149, 63, 0.05) 40%, rgba(5, 5, 5, 0) 70%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Typography Classes */
+    .text-gold {
+      background: var(--gold-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .text-electric {
+      color: var(--electric-blue);
+      text-shadow: 0 0 15px var(--electric-glow);
+    }
+
+    /* Glassmorphic Components */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 30px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      border-color: var(--electric-blue);
+      box-shadow: 0 0 30px var(--electric-glow);
+      transform: translateY(-5px);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-gold {
+      background: var(--gold-gradient);
+      color: #050505;
+      box-shadow: 0 0 20px rgba(191, 149, 63, 0.2);
+    }
+
+    .btn-gold:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 30px rgba(191, 149, 63, 0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--electric-blue);
+      color: var(--electric-blue);
+      box-shadow: 0 0 20px var(--electric-glow);
+    }
+
+    /* ==========================================================================
+       2. NAVIGATION BAR
+       ========================================================================== */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 8%;
+      background: rgba(5, 5, 5, 0.8);
+      backdrop-filter: blur(20px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--electric-blue);
+    }
+
+    /* ==========================================================================
+       3. HERO SECTION
+       ========================================================================== */
+    .hero {
+      min-height: 100vh;
+      padding: 160px 8% 80px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      align-items: center;
+      gap: 60px;
+    }
+
+    .hero-content h1 {
+      font-size: 3.8rem;
+      line-height: 1.15;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin-bottom: 36px;
+      max-width: 580px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Hero Visual AI Brain Element */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ai-brain-container {
+      width: 380px;
+      height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(5,5,5,0) 70%);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: pulseGlow 4s infinite alternate;
+      position: relative;
+    }
+
+    .ai-brain-icon {
+      font-size: 8rem;
+      color: var(--electric-blue);
+      filter: drop-shadow(0 0 20px var(--electric-blue));
+    }
+
+    .floating-card {
+      position: absolute;
+      background: rgba(15, 15, 20, 0.85);
+      border: 1px solid var(--electric-blue);
+      padding: 12px 20px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: float 5s infinite ease-in-out;
+    }
+
+    .floating-card-1 { top: 20px; left: -20px; animation-delay: 0s; }
+    .floating-card-2 { bottom: 40px; right: -20px; animation-delay: 2.5s; }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); }
+      100% { box-shadow: 0 0 50px rgba(0, 240, 255, 0.4); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    /* ==========================================================================
+       4. FEATURES SECTION
+       ========================================================================== */
+    .features {
+      padding: 100px 8%;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-header h2 {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--electric-blue);
+      margin-bottom: 20px;
+    }
+
+    /* ==========================================================================
+       5. INTERACTIVE DEMO (AI GENERATOR PREVIEW)
+       ========================================================================== */
+    .demo-section {
+      padding: 80px 8%;
+    }
+
+    .demo-box {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .input-field {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--electric-blue);
+    }
+
+    .result-display {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid var(--card-border);
+      display: none;
+    }
+
+    /* ==========================================================================
+       6. PRICING SECTION
+       ========================================================================== */
+    .pricing {
+      padding: 100px 8%;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .price-tag {
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin: 20px 0;
+    }
+
+    .price-tag span {
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+
+    .feature-list li {
+      margin-bottom: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-list li i {
+      color: var(--electric-blue);
+    }
+
+    /* Popular Tag */
+    .popular-card {
+      border-color: var(--electric-blue);
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--electric-blue);
+      color: #050505;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* ==========================================================================
+       7. RESPONSIVE DESIGN
+       ========================================================================== */
+    @media (max-width: 992px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 140px;
+      }
+      .hero-content p { margin: 0 auto 36px; }
+      .hero-actions { justify-content: center; }
+      .hero-visual { margin-top: 40px; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 576px) {
+      .hero-content h1 { font-size: 2.5rem; }
+      .ai-brain-container { width: 280px; height: 280px; }
+      .ai-brain-icon { font-size: 5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION BAR -->
+<nav class="navbar">
+  <div class="logo text-gold">NEEDS AI</div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#generator">AI Generator</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <div>
+    <a href="#pricing" class="btn btn-outline" style="padding: 10px 24px; margin-right: 10px;">Login</a>
+    <a href="#pricing" class="btn btn-gold" style="padding: 10px 24px;">Start Free</a>
+  </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Discover Your Need.<br>
+      <span class="text-gold">Build Your Business.</span><br>
+      <span class="text-electric">Earn Your Future.</span>
+    </h1>
+    <p>An AI-powered business education platform helping aspiring entrepreneurs learn, construct scalable business blueprints, and scale from ₹0 to ₹100,000/month in predictable income.</p>
+    <div class="hero-actions">
+      <a href="#generator" class="btn btn-gold"><i class="fa-solid fa-bolt"></i> Start Learning</a>
+      <a href="#pricing" class="btn btn-outline"><i class="fa-solid fa-lock"></i> Login</a>
+      <a href="#generator" class="btn btn-outline"><i class="fa-solid fa-wand-magic-sparkles"></i> Create Business Plan</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="ai-brain-container">
+      <i class="fa-solid fa-brain ai-brain-icon"></i>
+    </div>
+    <!-- Floating Card 1 -->
+    <div class="floating-card floating-card-1">
+      <i class="fa-solid fa-chart-line text-electric" style="font-size: 1.5rem;"></i>
+      <div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">Target Income</div>
+        <div style="font-weight: 700; color: #00ff88;">₹100,000 / mo</div>
+      </div>
+    </div>
+    <!-- Floating Card 2 -->
+    <div class="floating-card floating-card-2">
+      <i class="fa-solid fa-microchip text-gold" style="font-size: 1.5rem;"></i>
+      <div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">AI Blueprint Generated</div>
+        <div style="font-weight: 700;">AI Thumbnail Agency</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section class="features" id="features">
+  <div class="section-header">
+    <h2>Engineered For <span class="text-gold">Startup Velocity</span></h2>
+    <p>Everything required to launch, validate, and scale your automated business model.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="glass-card">
+      <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+      <h3 style="margin-bottom: 12px;">AI Business Mentor</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">24/7 AI-driven strategic guidance customized for client acquisition and operational scaling.</p>
+    </div>
+
+    <div class="glass-card">
+      <div class="feature-icon"><i class="fa-solid fa-lightbulb"></i></div>
+      <h3 style="margin-bottom: 12px;">Business Idea Generator</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Enter your skills and budget to output high-ROI execution plans with financial targets.</p>
+    </div>
+
+    <div class="glass-card">
+      <div class="feature-icon"><i class="fa-solid fa-route"></i></div>
+      <h3 style="margin-bottom: 12px;">Income Roadmap</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Step-by-step milestones taking you directly from ₹0 to ₹100k/month with zero fluff.</p>
+    </div>
+
+    <div class="glass-card">
+      <div class="feature-icon"><i class="fa-solid fa-file-pdf"></i></div>
+      <h3 style="margin-bottom: 12px;">Premium PDF Vault</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Instant access to high-converting sales scripts, marketing frameworks, and agency systems.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI BUSINESS IDEA GENERATOR PREVIEW -->
+<section class="demo-section" id="generator">
+  <div class="section-header">
+    <h2>Generate Your <span class="text-electric">AI Business Blueprint</span></h2>
+    <p>Test drive our AI Business Engine directly below.</p>
+  </div>
+
+  <div class="glass-card demo-box">
+    <form id="generator-form">
+      <div class="form-grid">
+        <input type="number" id="demo-budget" class="input-field" placeholder="Budget (e.g. 0 or 5000)" required>
+        <input type="text" id="demo-interest" class="input-field" placeholder="Interest (e.g. Media, Tech)" required>
+        <input type="text" id="demo-skills" class="input-field" placeholder="Skills (e.g. Editing, Writing)" required>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width: 100%;"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Complete Plan</button>
+    </form>
+
+    <!-- AI Output Display -->
+    <div class="result-display" id="generator-result">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 class="text-gold" id="res-title">AI Content Automation Agency</h3>
+        <span style="background: rgba(0, 255, 136, 0.1); color: #00ff88; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem;">Profit Target: ₹100,000/mo</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.85rem;">Initial Investment</div>
+          <div style="font-weight: 700;" id="res-investment">₹0 - ₹1,000</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.85rem;">First Month Target</div>
+          <div style="font-weight: 700; color: var(--electric-blue);" id="res-goal">₹10,000</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 0.85rem;">Recommended Stack</div>
+          <div style="font-weight: 700;" id="res-tools">ChatGPT, Canva, CapCut</div>
+        </div>
+      </div>
+
+      <div>
+        <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px;">Action Strategy</div>
+        <p style="font-size: 0.95rem; color: #ddd;" id="res-strategy">Outreach to short-form creators offering automated thumbnail and caption generation. Scale by delegating delivery to free AI workflows.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING SECTION -->
+<section class="pricing" id="pricing">
+  <div class="section-header">
+    <h2>Invest in Your <span class="text-gold">Financial Freedom</span></h2>
+    <p>Transparent pricing designed to scale alongside your progress.</p>
+  </div>
+
+  <div class="pricing-grid">
+    <!-- Free Plan -->
+    <div class="glass-card">
+      <h3>Starter</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">To explore the platform</p>
+      <div class="price-tag">₹0 <span>/ forever</span></div>
+      <ul class="feature-list">
+        <li><i class="fa-solid fa-check"></i> Limited AI Idea Generations</li>
+        <li><i class="fa-solid fa-check"></i> Sample PDF Guides</li>
+        <li><i class="fa-solid fa-check"></i> Basic Income Roadmap</li>
+      </ul>
+      <a href="#" class="btn btn-outline" style="width: 100%;">Get Started</a>
+    </div>
+
+    <!-- Premium Plan -->
+    <div class="glass-card popular-card">
+      <div class="popular-badge">Most Popular</div>
+      <h3 class="text-gold">Premium Plan</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">For action takers building businesses</p>
+      <div class="price-tag text-gold">₹499 <span>/ month</span></div>
+      <ul class="feature-list">
+        <li><i class="fa-solid fa-check"></i> Unlimited AI Business Ideas</li>
+        <li><i class="fa-solid fa-check"></i> Complete PDF Vault Access</li>
+        <li><i class="fa-solid fa-check"></i> AI Business Roadmap</li>
+        <li><i class="fa-solid fa-check"></i> Marketing & Outreach Strategies</li>
+      </ul>
+      <a href="#" class="btn btn-gold" style="width: 100%;">Upgrade to Premium</a>
+    </div>
+
+    <!-- Pro Plan -->
+    <div class="glass-card">
+      <h3 class="text-electric">PRO Plan</h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">For founders seeking rapid scale</p>
+      <div class="price-tag text-electric">₹999 <span>/ month</span></div>
+      <ul class="feature-list">
+        <li><i class="fa-solid fa-check"></i> Everything in Premium</li>
+        <li><i class="fa-solid fa-check"></i> Personal 24/7 AI Coach</li>
+        <li><i class="fa-solid fa-check"></i> Advanced Financial Analysis</li>
+        <li><i class="fa-solid fa-check"></i> Brand & Scale Strategies</li>
+      </ul>
+      <a href="#" class="btn btn-outline" style="width: 100%; border-color: var(--electric-blue);">Join Pro Scale</a>
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE JAVASCRIPT LOGIC -->
+<script>
+  document.getElementById('generator-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const budget = document.getElementById('demo-budget').value;
+    const interest = document.getElementById('demo-interest').value;
+    const skills = document.getElementById('demo-skills').value;
+
+    // Dynamic calculation output simulation
+    document.getElementById('res-title').innerText = `AI ${interest} Acceleration Agency`;
+    document.getElementById('res-investment').innerText = `₹${budget || 0}`;
+    document.getElementById('res-tools').innerText = `${skills}, ChatGPT, Gemini AI`;
+    document.getElementById('res-strategy').innerText = `Utilize your skills in ${skills} combined with AI tools to deliver automated ${interest} workflows. Target small businesses needing fast execution.`;
+
+    const resultBox = document.getElementById('generator-result');
+    resultBox.style.display = 'block';
+  });
+</script>
+</body>
+</html>
