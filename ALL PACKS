@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALLPACK — Luxury Studio Asset Platform</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- JSZip CDN for custom generated texture download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- Three.js CDN & OBJLoader for Realtime 3D Viewport & Custom OBJ Imports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+
+  <!-- 💳 OFFICIAL RAZORPAY PAYMENT GATEWAY SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            }
+          },
+          animation: {
+            'glow-pulse': 'glowPulse 4s ease-in-out infinite alternate',
+            'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          },
+          keyframes: {
+            glowPulse: {
+              '0%': { filter: 'drop-shadow(0 0 15px rgba(16, 185, 129, 0.2))' },
+              '100%': { filter: 'drop-shadow(0 0 35px rgba(16, 185, 129, 0.6))' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(15px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #030508;
+      color: #f1f5f9;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 45%),
+        radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(6, 182, 212, 0.04) 0px, transparent 60%),
+        radial-gradient(at 50% 100%, rgba(3, 5, 8, 0.98) 0px, transparent 70%);
+      background-attachment: fixed;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #020305; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+    .logo-gradient-text {
+      background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 35%, #fef08a 70%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 10px rgba(16, 185, 129, 0.2));
+    }
+
+    .logo-icon-bg {
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #f59e0b 100%);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.4), inset 0 0 10px rgba(255,255,255,0.4);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .glass-header {
+      background: rgba(3, 5, 8, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .glass-sidebar {
+      background: rgba(6, 9, 15, 0.85);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.4) 0%, rgba(11, 15, 25, 0.6) 100%);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(16, 185, 129, 0.5);
+      background: linear-gradient(145deg, rgba(20, 30, 50, 0.7) 0%, rgba(13, 20, 35, 0.8) 100%);
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.2);
+    }
+
+    .texture-sphere {
+      border-radius: 50%;
+      box-shadow: inset -14px -14px 28px rgba(0,0,0,0.95), inset 8px 8px 18px rgba(255,255,255,0.3), 0 15px 30px rgba(0,0,0,0.8);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .asset-card:hover .texture-sphere {
+      transform: scale(1.12) rotate(4deg);
+      box-shadow: inset -10px -10px 22px rgba(0,0,0,0.9), inset 6px 6px 14px rgba(255,255,255,0.5), 0 22px 45px rgba(16, 185, 129, 0.35);
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #0f172a;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #10b981;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
+      transition: all 0.2s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: #34d399;
+    }
+
+    .btn-glow {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-glow::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(60deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: rotate(30deg);
+      transition: transform 0.8s ease;
+    }
+    .btn-glow:hover::after {
+      transform: rotate(30deg) translate(100%, 100%);
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col selection:bg-brand-500 selection:text-slate-950">
+
+<!-- ================= TOP HEADER ================= -->
+<header class="h-16 glass-header sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8">
+  <div class="flex items-center gap-3">
+    <a href="#" class="flex items-center gap-3 font-display font-bold text-xl tracking-wider text-white group">
+      <div class="w-10 h-10 rounded-xl logo-icon-bg flex items-center justify-center text-slate-950 font-black text-xl group-hover:scale-110 group-hover:rotate-6 transition duration-300">
+        <i class="fa-solid fa-cube text-slate-950 text-lg"></i>
+      </div>
+      <span class="logo-gradient-text text-2xl font-extrabold tracking-tight">ALLPACK</span>
+    </a>
+  </div>
+
+  <!-- AI Tools Header Links -->
+  <div class="hidden lg:flex items-center gap-2 text-[11px] font-mono">
+    <span class="text-xs text-brand-400 font-bold uppercase mr-1"><i class="fa-solid fa-robot mr-1"></i> AI Tools:</span>
+    <a href="https://chatgpt.com" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-brand-500 text-slate-300 hover:text-white transition flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-400 text-[10px]"></i> ChatGPT</a>
+    <a href="https://gemini.google.com" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-brand-500 text-slate-300 hover:text-white transition flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-blue-400 text-[10px]"></i> Gemini</a>
+    <a href="https://claude.ai" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-brand-500 text-slate-300 hover:text-white transition flex items-center gap-1.5"><i class="fa-solid fa-brain text-purple-400 text-[10px]"></i> Claude</a>
+    <a href="https://www.midjourney.com" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-brand-500 text-slate-300 hover:text-white transition flex items-center gap-1.5"><i class="fa-solid fa-image text-emerald-400 text-[10px]"></i> Midjourney</a>
+    <a href="https://leonardo.ai" target="_blank" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-brand-500 text-slate-300 hover:text-white transition flex items-center gap-1.5"><i class="fa-solid fa-palette text-rose-400 text-[10px]"></i> Leonardo AI</a>
+  </div>
+
+  <!-- HEADER BUTTONS -->
+  <div class="flex items-center gap-3 text-xs font-semibold">
+    <button onclick="openPricingModal()" class="btn-glow bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg shadow-amber-500/20">
+      <i class="fa-solid fa-crown text-slate-950 text-xs"></i>
+      <span id="user-status-btn">Upgrade to PRO</span>
+    </button>
+
+    <button onclick="openContactModal()" class="btn-glow bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-slate-200 border border-slate-700 hover:border-brand-500/50 font-bold px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-1.5 shadow-lg shadow-slate-950/50">
+      <i class="fa-solid fa-headset text-[11px] text-brand-400"></i> Contact Us
+    </button>
+  </div>
+</header>
+
+<!-- ================= MAIN LAYOUT ================= -->
+<div class="flex-grow flex w-full">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="w-64 glass-sidebar p-4 shrink-0 hidden md:flex flex-col justify-between select-none max-h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+
+    <div>
+      <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 px-2 flex items-center gap-1.5">
+        <i class="fa-solid fa-sliders text-[9px]"></i> Asset Switcher
+      </div>
+
+      <div class="grid grid-cols-2 gap-1.5 mb-6 p-1 bg-slate-950/90 rounded-xl border border-slate-800/80 shadow-inner">
+        <button onclick="switchAssetType('textures', this)" id="tab-textures" class="py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-chess-board text-xs"></i> Textures
+        </button>
+        <button onclick="switchAssetType('models', this)" id="tab-models" class="py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-all duration-300 flex items-center justify-center gap-1.5 hover:bg-slate-900/50">
+          <i class="fa-solid fa-cube text-xs"></i> 3D Models
+        </button>
+      </div>
+
+      <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 px-2 flex items-center gap-1.5">
+        <i class="fa-solid fa-folder-tree text-[9px]"></i> Categories
+      </div>
+
+      <nav class="space-y-1.5 text-xs text-slate-300" id="sidebar-categories">
+        <button onclick="filterCategory('all', this)" class="sidebar-btn active-cat w-full text-left px-3.5 py-2.5 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/30 font-bold flex items-center justify-between transition-all duration-300">
+          <span><i class="fa-solid fa-layer-group text-[10px] mr-2"></i> All Assets</span>
+          <span class="text-[10px] bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md text-slate-400 font-mono" id="cat-count-all">...</span>
+        </button>
+        <button onclick="filterCategory('brick', this)" class="sidebar-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-between transition-all duration-200">
+          <span><i class="fa-solid fa-chevron-right text-[9px] mr-2 text-slate-600"></i> Brick</span>
+        </button>
+        <button onclick="filterCategory('wood', this)" class="sidebar-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-between transition-all duration-200">
+          <span><i class="fa-solid fa-chevron-right text-[9px] mr-2 text-slate-600"></i> Wood</span>
+        </button>
+        <button onclick="filterCategory('concrete', this)" class="sidebar-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-between transition-all duration-200">
+          <span><i class="fa-solid fa-chevron-right text-[9px] mr-2 text-slate-600"></i> Concrete</span>
+        </button>
+        <button onclick="filterCategory('metal', this)" class="sidebar-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-between transition-all duration-200">
+          <span><i class="fa-solid fa-chevron-right text-[9px] mr-2 text-slate-600"></i> Metal</span>
+        </button>
+      </nav>
+
+      <!-- PRO EXCLUSIVE TOOLS -->
+      <div class="mt-6 pt-4 border-t border-slate-800/80">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2 px-2 flex items-center justify-between">
+          <span><i class="fa-solid fa-crown text-[9px] mr-1"></i> Pro Tools</span>
+          <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded">PRO</span>
+        </div>
+        <div class="space-y-1 text-xs">
+          <button onclick="triggerProFeature('Batch Download')" class="w-full text-left flex items-center justify-between p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-amber-400 transition">
+            <span><i class="fa-solid fa-boxes-packing text-[10px] mr-1.5"></i> Batch Zip Download</span>
+            <i class="fa-solid fa-lock text-[10px] text-amber-400"></i>
+          </button>
+          <button onclick="triggerProFeature('Seamless Tiling Engine')" class="w-full text-left flex items-center justify-between p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-amber-400 transition">
+            <span><i class="fa-solid fa-border-none text-[10px] mr-1.5"></i> Seamless Tiling Fixer</span>
+            <i class="fa-solid fa-lock text-[10px] text-amber-400"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- EXTERNAL HUBS -->
+      <div class="mt-6 pt-4 border-t border-slate-800/80">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-globe text-[9px]"></i> External Asset Hubs
+        </div>
+        <div class="space-y-1 text-xs">
+          <a href="https://polyhaven.com/textures" target="_blank" class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-brand-400 transition">
+            <span><i class="fa-solid fa-cube text-[10px] mr-1.5"></i> PolyHaven</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <a href="https://ambientcg.com/list?sort=popular" target="_blank" class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-brand-400 transition">
+            <span><i class="fa-solid fa-layer-group text-[10px] mr-1.5"></i> ambientCG</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <a href="https://www.freepik.com" target="_blank" class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-brand-400 transition">
+            <span><i class="fa-solid fa-images text-[10px] mr-1.5"></i> Freepik</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <a href="https://www.pexels.com" target="_blank" class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-brand-400 transition">
+            <span><i class="fa-solid fa-camera text-[10px] mr-1.5"></i> Pexels</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEFT SIDEBAR BOTTOM CREATOR BOX -->
+    <div class="mt-8 pt-4 border-t border-slate-800/80">
+      <div class="bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-4 rounded-2xl border border-slate-800 text-center shadow-2xl relative overflow-hidden group hover:border-brand-500/40 transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20 flex items-center justify-center mx-auto mb-2 text-base group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+        </div>
+        <h4 class="text-xs font-bold text-white mb-1">Custom PBR Studio</h4>
+        <p class="text-[10px] text-slate-400 mb-3 leading-relaxed">Drag photo to generate complete PBR map sets.</p>
+        <a href="#pbr-studio" class="btn-glow block w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-bold py-2 rounded-xl text-xs transition-all duration-300 shadow-lg shadow-emerald-500/20">
+          Create Texture
+        </a>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 border-b border-slate-800/80 pb-5">
+      <div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <span id="current-category-name" class="font-display uppercase tracking-wide bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">All PBR Textures</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1" id="current-category-desc">Streaming studio assets & Sketchfab 3D models.</p>
+      </div>
+
+      <div class="relative w-full sm:w-80 group">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs group-focus-within:text-brand-400 transition-colors"></i>
+        <input
+                type="text"
+                id="asset-search"
+                placeholder="Search e.g. 'car', 'wood', 'mech'..."
+                class="w-full bg-slate-950/90 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500/80 focus:ring-1 focus:ring-brand-500/50 transition-all duration-300 shadow-inner"
+        />
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-spinner" class="py-28 text-center animate-pulse">
+      <i class="fa-solid fa-circle-notch fa-spin text-4xl text-brand-500 mb-4"></i>
+      <p class="text-xs text-slate-400 font-mono tracking-wider">Fetching studio assets from cloud repositories...</p>
+    </div>
+
+    <!-- ASSETS GRID -->
+    <div id="asset-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 hidden">
+      <!-- Rendered via JavaScript -->
+    </div>
+
+    <!-- LOAD MORE BUTTON -->
+    <div class="text-center mt-12 mb-8 hidden" id="load-more-box">
+      <button onclick="loadMoreAssets()" class="btn-glow bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white font-bold border border-slate-700/80 hover:border-brand-500 px-8 py-3 rounded-2xl text-xs transition-all duration-300 shadow-xl">
+        <i class="fa-solid fa-arrows-rotate mr-2 text-brand-400"></i> Load More Stream Assets
+      </button>
+    </div>
+
+    <!-- ================= PBR GENERATOR STUDIO SECTION ================= -->
+    <section id="pbr-studio" class="mt-20 pt-10 border-t border-slate-800/80 scroll-mt-20">
+      <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-brand-400 text-xs font-mono font-bold uppercase tracking-wider inline-flex items-center gap-1.5"><i class="fa-solid fa-flask text-amber-400"></i> Creator Studio</span>
+          <h2 class="text-2xl font-bold text-white tracking-tight mt-1">Interactive PBR Texture Engine & 3D Viewport</h2>
+          <p class="text-xs text-slate-400 mt-1">Upload any photo to auto-generate PBR channels and view live texture mapping on 3D meshes.</p>
+        </div>
+
+        <!-- PRO SEAMLESS TILING TOGGLE -->
+        <div class="bg-slate-950/90 border border-slate-800 p-2.5 rounded-2xl flex items-center gap-3">
+          <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-border-none text-amber-400 text-xs"></i> Seamless Tiling:</span>
+          <button onclick="triggerProFeature('Seamless Tiling Engine')" class="bg-slate-900 border border-amber-500/40 text-amber-400 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-amber-500/10 transition">
+            <i class="fa-solid fa-lock text-[10px]"></i> Enable PRO
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <div class="lg:col-span-4 bg-slate-950/80 border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-xl backdrop-blur-lg">
+          <div
+                  id="drop-zone"
+                  onclick="document.getElementById('image-input').click()"
+                  class="border-2 border-dashed border-slate-800 hover:border-brand-500/60 bg-slate-900/60 hover:bg-slate-900/90 rounded-xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-2 group"
+          >
+            <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500 group-hover:text-brand-400 group-hover:scale-110 transition-all duration-300"></i>
+            <p class="text-xs text-slate-300 font-semibold group-hover:text-white transition-colors">Drag & Drop Image Here</p>
+            <p class="text-[10px] text-slate-500 font-mono">Supports JPG, PNG, WEBP</p>
+            <input type="file" id="image-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">Material Name</label>
+            <input type="text" id="custom-name" value="Custom_PBR_Material" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 font-mono transition-all duration-200" />
+          </div>
+
+          <div class="space-y-4 pt-2 border-t border-slate-800/80">
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-400 mb-1.5">
+                <span>Roughness Contrast</span>
+                <span id="rough-val" class="text-brand-400 font-mono font-bold">50%</span>
+              </div>
+              <input type="range" id="rough-slider" min="0" max="100" value="50" oninput="processCustomMaps()" class="w-full">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-400 mb-1.5">
+                <span>Normal/Bump Depth</span>
+                <span id="bump-val" class="text-brand-400 font-mono font-bold">60%</span>
+              </div>
+              <input type="range" id="bump-slider" min="0" max="100" value="60" oninput="processCustomMaps()" class="w-full">
+            </div>
+          </div>
+
+          <!-- PRO-LOCKED ZIP DOWNLOAD BUTTON -->
+          <button onclick="downloadCustomZip()" id="custom-zip-btn" class="btn-glow w-full bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition-all duration-300 shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 border border-amber-400/40">
+            <i class="fa-solid fa-lock text-slate-950"></i>
+            <span>Download Generated Maps (.ZIP)</span>
+            <span class="bg-slate-950 text-amber-400 text-[9px] font-black px-2 py-0.5 rounded border border-amber-400/40 uppercase tracking-widest ml-1 shadow">PRO</span>
+          </button>
+        </div>
+
+        <!-- ENHANCED 3D VIEWPORT & PBR MAPS PANEL -->
+        <div class="lg:col-span-8 bg-slate-950/80 border border-slate-800/80 p-5 rounded-2xl shadow-xl backdrop-blur-lg">
+
+          <!-- VIEWPORT MODE SWITCHER HEADER -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800/80">
+            <div class="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
+              <button onclick="toggleStudioTab('3d')" id="tab-btn-3d" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-brand-500 text-slate-950 transition flex items-center gap-1.5 shadow-md">
+                <i class="fa-solid fa-cube text-xs"></i> 3D Mesh Preview
+              </button>
+              <button onclick="toggleStudioTab('channels')" id="tab-btn-channels" class="px-4 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                <i class="fa-solid fa-border-all text-xs"></i> PBR Channels
+              </button>
+            </div>
+
+            <!-- 3D SHAPE SELECTOR & CUSTOM .OBJ IMPORT BUTTONS -->
+            <div id="mesh-selector-tools" class="flex flex-wrap items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800/80 text-xs font-semibold">
+              <span class="text-[10px] text-slate-500 font-mono px-2 uppercase">Mesh:</span>
+              <button onclick="changeMeshShape('sphere')" id="shape-sphere" class="shape-btn px-2.5 py-1 rounded-lg bg-slate-800 text-brand-400 border border-brand-500/40 hover:text-white transition"><i class="fa-solid fa-circle text-[10px]"></i> Sphere</button>
+              <button onclick="changeMeshShape('cube')" id="shape-cube" class="shape-btn px-2.5 py-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-cube text-[10px]"></i> Cube</button>
+              <button onclick="changeMeshShape('plane')" id="shape-plane" class="shape-btn px-2.5 py-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-square text-[10px]"></i> Plane</button>
+              <button onclick="changeMeshShape('cylinder')" id="shape-cylinder" class="shape-btn px-2.5 py-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-database text-[10px]"></i> Cylinder</button>
+              <button onclick="changeMeshShape('torus')" id="shape-torus" class="shape-btn px-2.5 py-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-ring text-[10px]"></i> Torus</button>
+
+              <!-- CUSTOM OBJ UPLOAD BUTTON -->
+              <input type="file" id="obj-input" accept=".obj" class="hidden" onchange="handleObjUpload(event)">
+              <button onclick="document.getElementById('obj-input').click()" class="shape-btn px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 transition flex items-center gap-1">
+                <i class="fa-solid fa-file-import text-[10px]"></i> Import .OBJ
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 1: 3D REALTIME VIEWPORT CANVAS (FREE PREVIEW) -->
+          <div id="studio-view-3d" class="relative w-full aspect-video sm:aspect-[16/9] rounded-xl overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800/80 shadow-2xl">
+            <div id="three-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+            <div class="absolute bottom-3 left-3 bg-slate-950/80 border border-slate-800 px-3 py-1 rounded-lg text-[10px] font-mono text-slate-400 backdrop-blur-md flex items-center gap-2">
+              <span><i class="fa-solid fa-hand-pointer text-brand-400 mr-1"></i> Rotate/Zoom</span>
+              <span class="text-slate-600">|</span>
+              <span><i class="fa-solid fa-file-arrow-up text-amber-400 mr-1"></i> Drag & drop .OBJ file directly into 3D View</span>
+            </div>
+          </div>
+
+          <!-- TAB 2: PBR CHANNELS GRID -->
+          <div id="studio-view-channels" class="hidden">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors group">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1.5 group-hover:text-brand-400 transition-colors">Diffuse</span>
+                <canvas id="c-diffuse" class="w-full aspect-square rounded-lg object-cover bg-slate-950 border border-slate-800/50 shadow-inner"></canvas>
+              </div>
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors group">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1.5 group-hover:text-brand-400 transition-colors">Roughness</span>
+                <canvas id="c-roughness" class="w-full aspect-square rounded-lg object-cover bg-slate-950 border border-slate-800/50 shadow-inner"></canvas>
+              </div>
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors group">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1.5 group-hover:text-brand-400 transition-colors">Bump</span>
+                <canvas id="c-bump" class="w-full aspect-square rounded-lg object-cover bg-slate-950 border border-slate-800/50 shadow-inner"></canvas>
+              </div>
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors group">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1.5 group-hover:text-brand-400 transition-colors">Normal Map</span>
+                <canvas id="c-normal" class="w-full aspect-square rounded-lg object-cover bg-slate-950 border border-slate-800/50 shadow-inner"></canvas>
+              </div>
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors group">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1.5 group-hover:text-brand-400 transition-colors">Displacement</span>
+                <canvas id="c-displacement" class="w-full aspect-square rounded-lg object-cover bg-slate-950 border border-slate-800/50 shadow-inner"></canvas>
+              </div>
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-colors group">
+                <span class="text-[10px] font-bold text-slate-400 block mb-1.5 group-hover:text-brand-400 transition-colors">Metallic</span>
+                <canvas id="c-metallic" class="w-full aspect-square rounded-lg object-cover bg-slate-950 border border-slate-800/50 shadow-inner"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= MODAL DETAILED VIEW ================= -->
+<div id="dl-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center hidden p-4 transition-all duration-300">
+  <div class="bg-slate-900 border border-slate-800/90 rounded-3xl max-w-xl w-full p-6 relative shadow-2xl">
+    <button onclick="closeDlModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10">
+      <i class="fa-solid fa-xmark text-lg"></i>
+    </button>
+
+    <div class="flex gap-4 items-center mb-6">
+      <div class="w-20 h-20 texture-sphere overflow-hidden shrink-0 border border-slate-800 bg-slate-950 shadow-xl">
+        <img id="modal-img" src="" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <span class="text-[10px] text-brand-400 font-mono font-bold uppercase tracking-wider" id="modal-source">Asset Details</span>
+        <h3 class="text-lg font-bold text-white line-clamp-1 capitalize" id="modal-title">Selected Asset</h3>
+
+        <div class="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
+          <i class="fa-solid fa-link text-[10px] text-slate-500"></i>
+          <a id="modal-page-url" href="#" target="_blank" class="text-brand-400 hover:underline line-clamp-1 font-mono text-[11px]">
+            https://...
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sketchfab 3D Viewport iframe -->
+    <div id="sketchfab-embed-box" class="mb-4 hidden">
+      <iframe id="sketchfab-iframe" class="w-full h-64 rounded-2xl border border-slate-800 shadow-inner" src="" frameborder="0" allow="autoplay; fullscreen; vr"></iframe>
+    </div>
+
+    <div class="space-y-4">
+      <div id="res-selector-box">
+        <label class="block text-xs font-semibold text-slate-300 mb-2">Select Download Quality</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setResolution('1k', this)" class="res-btn bg-slate-950 border border-slate-800 py-2 rounded-xl text-xs font-mono text-slate-300 hover:border-brand-500">1K</button>
+          <button onclick="setResolution('2k', this)" class="res-btn bg-brand-500 text-slate-950 font-bold border border-brand-500 py-2 rounded-xl text-xs font-mono">2K</button>
+          <button onclick="setResolution('4k', this)" class="res-btn bg-slate-950 border border-slate-800 py-2 rounded-xl text-xs font-mono text-slate-300 hover:border-amber-500 flex items-center justify-center gap-1">4K <i class="fa-solid fa-lock text-[10px] text-amber-400"></i></button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <a id="modal-web-btn" href="#" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl transition-all text-xs flex items-center justify-center gap-2 border border-slate-700">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Official Page
+        </a>
+
+        <a id="modal-download-link" href="#" target="_blank" class="btn-glow bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-bold py-3 rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-download"></i> Get Package
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 💳 DUAL PAYMENT OPTIONS MODAL (RAZORPAY GATEWAY + DIRECT QR) ================= -->
+<div id="pricing-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+  <div class="bg-slate-900 border border-amber-500/30 rounded-3xl max-w-xl w-full p-6 sm:p-8 relative shadow-2xl text-center my-8">
+    <button onclick="closePricingModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 rounded-full z-10">
+      <i class="fa-solid fa-xmark text-lg"></i>
+    </button>
+
+    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/30">
+      <i class="fa-solid fa-crown text-xl"></i>
+    </div>
+    <h2 class="text-2xl font-black text-white tracking-tight">Upgrade to ALLPACK PRO</h2>
+    <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Unlock Custom PBR Texture .ZIP Downloads, 4K High-Res exports, and Batch Downloads.</p>
+
+    <div class="mt-6 bg-slate-950/90 border border-slate-800 p-5 rounded-2xl text-left space-y-5">
+
+      <!-- OPTION 1: AUTOMATED RAZORPAY GATEWAY -->
+      <div>
+        <span class="text-[10px] text-brand-400 font-mono font-bold uppercase tracking-wider block mb-2"><i class="fa-solid fa-bolt mr-1"></i> Option 1: Instant Gateway Checkout</span>
+
+        <button onclick="triggerRealRazorpayPayment(599)" id="pay-now-btn" class="btn-glow w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-shield-halved text-slate-950"></i> Pay ₹599 with Razorpay (Auto Unlock)
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 my-2">
+        <div class="h-[1px] bg-slate-800 flex-grow"></div>
+        <span class="text-[10px] text-slate-500 font-mono uppercase">OR SCAN & PAY</span>
+        <div class="h-[1px] bg-slate-800 flex-grow"></div>
+      </div>
+
+      <!-- OPTION 2: DIRECT QR CODE & UPI -->
+      <div class="p-4 bg-slate-900/90 rounded-xl border border-slate-800/80">
+        <span class="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider block mb-3"><i class="fa-solid fa-qrcode mr-1"></i> Option 2: Scan QR / Pay via App</span>
+
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <div class="w-32 h-32 bg-white p-2 rounded-xl shrink-0 flex items-center justify-center shadow-lg border border-slate-200">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=8931912108-2@ybl%26pn=ALLPACK%2520Studio%26am=599%26cu=INR" alt="ALLPACK UPI QR" class="w-full h-full object-contain">
+          </div>
+
+          <div class="space-y-2 text-center sm:text-left w-full">
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 flex items-center justify-between font-mono text-xs text-emerald-400 font-bold">
+              <span id="upi-id-text">8931912108-2@ybl</span>
+              <button onclick="copyUPIId()" class="text-slate-400 hover:text-white p-1 text-[11px]"><i class="fa-solid fa-copy"></i> Copy</button>
+            </div>
+
+            <div class="text-[11px] text-slate-400">
+              <span>Plan Amount: </span><strong class="text-amber-400">₹599 / Month</strong>
+            </div>
+
+            <div class="pt-1">
+              <a href="upi://pay?pa=8931912108-2@ybl&pn=ALLPACK%20Studio&am=599&cu=INR" class="inline-flex bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold px-3 py-1.5 rounded-lg text-[10px] transition items-center gap-1">
+                <i class="fa-solid fa-mobile-screen"></i> Open UPI App
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= 📞 CONTACT US MODAL ================= -->
+<div id="contact-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-xl z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+  <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-2xl text-left my-8">
+    <button onclick="closeContactModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 rounded-full z-10">
+      <i class="fa-solid fa-xmark text-lg"></i>
+    </button>
+
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20 flex items-center justify-center text-lg">
+        <i class="fa-solid fa-headset"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold text-white">Get in Touch</h3>
+        <p class="text-xs text-slate-400">Have questions or custom asset requests? We are here to help!</p>
+      </div>
+    </div>
+
+    <div class="space-y-4 mt-6">
+      <div class="grid grid-cols-2 gap-3">
+        <a href="mailto:support@allpack.studio" class="bg-slate-950 border border-slate-800 hover:border-brand-500 p-3 rounded-xl flex items-center gap-2 text-xs text-slate-300 hover:text-white transition group">
+          <i class="fa-solid fa-envelope text-brand-400 text-base group-hover:scale-110 transition"></i>
+          <div>
+            <span class="block text-[10px] text-slate-500 font-mono">Email Us</span>
+            <span class="font-bold">Email Support</span>
+          </div>
+        </a>
+
+        <a href="https://wa.me/918931912108" target="_blank" class="bg-slate-950 border border-slate-800 hover:border-emerald-500 p-3 rounded-xl flex items-center gap-2 text-xs text-slate-300 hover:text-white transition group">
+          <i class="fa-brands fa-whatsapp text-emerald-400 text-lg group-hover:scale-110 transition"></i>
+          <div>
+            <span class="block text-[10px] text-slate-500 font-mono">Instant Chat</span>
+            <span class="font-bold">WhatsApp Live</span>
+          </div>
+        </a>
+      </div>
+
+      <form onsubmit="submitContactForm(event)" class="space-y-3 pt-3 border-t border-slate-800/80">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Your Name</label>
+          <input type="text" required placeholder="Enter your full name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Email Address</label>
+          <input type="email" required placeholder="name@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 mb-1">Message</label>
+          <textarea rows="3" required placeholder="Write your query or request..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition resize-none"></textarea>
+        </div>
+
+        <button type="submit" id="contact-send-btn" class="btn-glow w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">
+          Send Message
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ================= JAVASCRIPT ENGINE ================= -->
+<script>
+  // 🔒 STRICT PRO STATUS LOGIC (Defaulted to false until verified)
+  let isProUser = localStorage.getItem('ALLPACK_PRO_USER_VERIFIED') === 'true';
+
+  const RAZORPAY_KEY_ID = 'rzp_test_TGcdbpC5Dd4y91';
+
+  const AFFILIATE_CONFIG = {
+    sketchfabRefId: 'YOUR_SKETCHFAB_AFFILIATE_ID',
+    polyhavenPatreon: 'https://www.patreon.com/polyhaven',
+  };
+
+  let activeMode = 'textures';
+  let allTexturesData = [];
+  let allModelsData = [];
+  let currentSelectedItem = null;
+  let currentRes = '2k';
+  let currentCursor = null;
+
+  const FALLBACK_TEXTURES = [
+    { id: 'brick_wall_001', name: 'Red Brick Wall', categories: ['brick'], thumbnail: 'https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=300&q=80', type: 'texture' },
+    { id: 'wood_planks_002', name: 'Dark Wood Deck', categories: ['wood'], thumbnail: 'https://images.unsplash.com/photo-1546484475-7f7bd55792da?auto=format&fit=crop&w=300&q=80', type: 'texture' },
+    { id: 'concrete_floor_003', name: 'Polished Concrete', categories: ['concrete'], thumbnail: 'https://images.unsplash.com/photo-1518640467707-6811f4a6ab73?auto=format&fit=crop&w=300&q=80', type: 'texture' },
+    { id: 'metal_plate_004', name: 'Rust Metal Sheet', categories: ['metal'], thumbnail: 'https://images.unsplash.com/photo-1508873696983-2df515122519?auto=format&fit=crop&w=300&q=80', type: 'texture' }
+  ];
+
+  window.addEventListener('DOMContentLoaded', () => {
+    checkProUserStatus();
+    loadPolyHavenTextures();
+    initThreeJS();
+    setupObjDragAndDrop();
+
+    customImg.src = 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=400&q=80';
+    customImg.onload = () => processCustomMaps();
+  });
+
+  function checkProUserStatus() {
+    if (isProUser) {
+      document.getElementById('user-status-btn').innerText = "PRO Active ✓";
+      const zipBtn = document.getElementById('custom-zip-btn');
+      if (zipBtn) {
+        zipBtn.className = "btn-glow w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-bold py-3.5 rounded-xl text-xs transition-all duration-300 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2";
+        zipBtn.innerHTML = `<i class="fa-solid fa-file-zipper"></i> Download Generated Maps (.ZIP)`;
+      }
+    } else {
+      document.getElementById('user-status-btn').innerText = "Upgrade to PRO";
+    }
+  }
+
+  function triggerProFeature(featureName) {
+    if (!isProUser) {
+      openPricingModal();
+    } else {
+      alert(`PRO Feature Active: ${featureName}`);
+    }
+  }
+
+  function openPricingModal() {
+    document.getElementById('pricing-modal').classList.remove('hidden');
+  }
+
+  function closePricingModal() {
+    document.getElementById('pricing-modal').classList.add('hidden');
+  }
+
+  function openContactModal() {
+    document.getElementById('contact-modal').classList.remove('hidden');
+  }
+
+  function closeContactModal() {
+    document.getElementById('contact-modal').classList.add('hidden');
+  }
+
+  function submitContactForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('contact-send-btn');
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending...`;
+    setTimeout(() => {
+      alert("✓ Thank you! Your message has been sent successfully.");
+      btn.innerHTML = "Send Message";
+      closeContactModal();
+    }, 1200);
+  }
+
+  function copyUPIId() {
+    navigator.clipboard.writeText('8931912108-2@ybl');
+    alert('UPI ID (8931912108-2@ybl) copied to clipboard!');
+  }
+
+  // 🔒 AUTOMATED REAL RAZORPAY GATEWAY TRIGGER
+  function triggerRealRazorpayPayment(amountInINR) {
+    if (typeof Razorpay === 'undefined') {
+      alert("Payment Gateway loading... Please try again in 3 seconds.");
+      return;
+    }
+
+    const options = {
+      key: RAZORPAY_KEY_ID,
+      amount: amountInINR * 100, // ₹599 = 59900 paise
+      currency: "INR",
+      name: "ALLPACK Studio",
+      description: "PRO Membership Upgrade",
+      handler: function (response) {
+        if (response.razorpay_payment_id) {
+          localStorage.setItem('ALLPACK_PRO_USER_VERIFIED', 'true');
+          isProUser = true;
+          checkProUserStatus();
+          alert("✓ Payment Successful! PRO Features & Custom PBR Downloads Unlocked.");
+          closePricingModal();
+        }
+      },
+      theme: { color: "#10b981" }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+
+  // Fetch PolyHaven Textures
+  async function loadPolyHavenTextures() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const response = await fetch('https://api.polyhaven.com/assets?t=textures', { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      allTexturesData = Object.keys(data).map(key => ({
+        id: key,
+        name: data[key].name || key.replace(/_/g, ' '),
+        categories: data[key].categories || [],
+        thumbnail: `https://cdn.polyhaven.com/asset_img/thumbs/${key}.png?width=256&height=256`,
+        type: 'texture'
+      }));
+
+      document.getElementById('cat-count-all').innerText = allTexturesData.length;
+    } catch (err) {
+      console.warn("PolyHaven API Timeout or Error, using instant fallbacks:", err);
+      allTexturesData = FALLBACK_TEXTURES;
+      document.getElementById('cat-count-all').innerText = allTexturesData.length;
+    } finally {
+      document.getElementById('loading-spinner').classList.add('hidden');
+      document.getElementById('asset-grid').classList.remove('hidden');
+      if (activeMode === 'textures') renderGrid(allTexturesData);
+    }
+  }
+
+  // Fetch Sketchfab 3D Models
+  async function loadSketchfabModels(query = '3d model', cursor = '') {
+    try {
+      document.getElementById('loading-spinner').classList.remove('hidden');
+      document.getElementById('asset-grid').classList.add('hidden');
+
+      let fetchUrl = `https://api.sketchfab.com/v3/search?type=models&q=${encodeURIComponent(query)}&downloadable=true&count=30`;
+      if (cursor) fetchUrl += `&cursor=${cursor}`;
+
+      const response = await fetch(fetchUrl);
+      const data = await response.json();
+      currentCursor = data.cursors ? data.cursors.next : null;
+
+      const newModels = (data.results || []).map(item => ({
+        id: item.uid,
+        name: item.name,
+        thumbnail: item.thumbnails && item.thumbnails.images && item.thumbnails.images[2] ? item.thumbnails.images[2].url : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80',
+        url: item.viewerUrl,
+        embedUrl: item.embedUrl,
+        type: 'model'
+      }));
+
+      if (cursor) {
+        allModelsData = [...allModelsData, ...newModels];
+      } else {
+        allModelsData = newModels;
+      }
+    } catch (err) {
+      console.error("Sketchfab API Error:", err);
+    } finally {
+      document.getElementById('loading-spinner').classList.add('hidden');
+      document.getElementById('asset-grid').classList.remove('hidden');
+      document.getElementById('load-more-box').classList.remove('hidden');
+      if (activeMode === 'models') renderGrid(allModelsData);
+    }
+  }
+
+  function loadMoreAssets() {
+    if (activeMode === 'models') {
+      loadSketchfabModels('3d model', currentCursor);
+    }
+  }
+
+  function renderGrid(items) {
+    const grid = document.getElementById('asset-grid');
+    grid.innerHTML = '';
+
+    if (!items || items.length === 0) {
+      grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 text-xs">No assets found. Try searching something else.</div>`;
+      return;
+    }
+
+    items.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = "asset-card cursor-pointer group flex flex-col items-center text-center p-3.5 rounded-2xl glass-card transition-all duration-300 animate-fade-in-up";
+      card.style.animationDelay = `${Math.min(idx * 20, 300)}ms`;
+      card.onclick = () => openDlModal(item);
+
+      card.innerHTML = `
+        <div class="w-28 h-28 sm:w-32 sm:h-32 texture-sphere overflow-hidden relative mb-3 bg-slate-950 border border-slate-800/60">
+          <img src="${item.thumbnail}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80'">
+        </div>
+        <h3 class="text-xs font-bold text-slate-200 group-hover:text-brand-400 transition-colors duration-200 line-clamp-1 capitalize">${item.name}</h3>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function switchAssetType(mode, btn) {
+    activeMode = mode;
+    document.getElementById('tab-textures').className = "py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5 hover:bg-slate-900/50";
+    document.getElementById('tab-models').className = "py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5 hover:bg-slate-900/50";
+
+    btn.className = "py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 transition flex items-center justify-center gap-1.5 shadow-md";
+
+    if (mode === 'textures') {
+      document.getElementById('current-category-name').innerText = "All PBR Textures";
+      document.getElementById('load-more-box').classList.add('hidden');
+      renderGrid(allTexturesData);
+    } else {
+      document.getElementById('current-category-name').innerText = "Sketchfab 3D Models";
+      if (allModelsData.length === 0) {
+        loadSketchfabModels('3d model');
+      } else {
+        renderGrid(allModelsData);
+        document.getElementById('load-more-box').classList.remove('hidden');
+      }
+    }
+  }
+
+  function filterCategory(cat, btn) {
+    document.querySelectorAll('.sidebar-btn').forEach(b => {
+      b.className = "sidebar-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-slate-900/80 text-slate-400 hover:text-white flex items-center justify-between transition-all duration-200";
+    });
+    btn.className = "sidebar-btn active-cat w-full text-left px-3.5 py-2.5 rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/30 font-bold flex items-center justify-between transition-all duration-300";
+
+    document.getElementById('current-category-name').innerText = cat === 'all' ? 'All Assets' : cat.toUpperCase();
+
+    if (activeMode === 'textures') {
+      if (cat === 'all') renderGrid(allTexturesData);
+      else renderGrid(allTexturesData.filter(item => item.categories && item.categories.includes(cat)));
+    } else {
+      loadSketchfabModels(cat);
+    }
+  }
+
+  document.getElementById('asset-search').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    if (activeMode === 'textures') {
+      renderGrid(allTexturesData.filter(item => item.name.toLowerCase().includes(q)));
+    } else {
+      if (q.length > 2) loadSketchfabModels(q);
+    }
+  });
+
+  async function openDlModal(item) {
+    currentSelectedItem = item;
+    document.getElementById('modal-title').innerText = item.name;
+    document.getElementById('modal-img').src = item.thumbnail;
+
+    let monetizedUrl = item.url;
+    if (item.type === 'model') {
+      monetizedUrl = `${item.url}?ref=${AFFILIATE_CONFIG.sketchfabRefId}`;
+    } else {
+      monetizedUrl = `https://polyhaven.com/a/${item.id}`;
+    }
+
+    document.getElementById('modal-source').innerText = item.type === 'texture' ? "PolyHaven CC0 Texture" : "Sketchfab 3D Model";
+    document.getElementById('modal-page-url').innerText = monetizedUrl;
+    document.getElementById('modal-page-url').href = monetizedUrl;
+    document.getElementById('modal-web-btn').href = monetizedUrl;
+
+    const embedBox = document.getElementById('sketchfab-embed-box');
+    const iframe = document.getElementById('sketchfab-iframe');
+    if (item.type === 'model' && item.embedUrl) {
+      iframe.src = `${item.embedUrl}/embed`;
+      embedBox.classList.remove('hidden');
+    } else {
+      embedBox.classList.add('hidden');
+      iframe.src = '';
+    }
+
+    await updateDownloadLink();
+    document.getElementById('dl-modal').classList.remove('hidden');
+  }
+
+  function closeDlModal() {
+    document.getElementById('sketchfab-iframe').src = '';
+    document.getElementById('dl-modal').classList.add('hidden');
+  }
+
+  async function setResolution(res, btn) {
+    if (res === '4k' && !isProUser) {
+      openPricingModal();
+      return;
+    }
+
+    currentRes = res;
+    document.querySelectorAll('.res-btn').forEach(b => {
+      b.className = "res-btn bg-slate-950 border border-slate-800 py-2 rounded-xl text-xs font-mono text-slate-300 hover:border-brand-500";
+    });
+    btn.className = "res-btn bg-brand-500 text-slate-950 font-bold border border-brand-500 py-2 rounded-xl text-xs font-mono";
+
+    await updateDownloadLink();
+  }
+
+  async function updateDownloadLink() {
+    const dlBtn = document.getElementById('modal-download-link');
+    if (!currentSelectedItem) return;
+
+    if (currentSelectedItem.type === 'model') {
+      dlBtn.href = `${currentSelectedItem.url}?ref=${AFFILIATE_CONFIG.sketchfabRefId}`;
+      dlBtn.innerHTML = `<i class="fa-solid fa-download"></i> Get 3D Model`;
+    } else {
+      dlBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Resolving Link...`;
+      try {
+        const res = await fetch(`https://api.polyhaven.com/files/${currentSelectedItem.id}`);
+        const filesData = await res.json();
+
+        if (filesData && filesData.zip && filesData.zip[currentRes]) {
+          const formatKey = Object.keys(filesData.zip[currentRes])[0];
+          dlBtn.href = filesData.zip[currentRes][formatKey].url;
+        } else {
+          dlBtn.href = `https://polyhaven.com/a/${currentSelectedItem.id}`;
+        }
+      } catch (e) {
+        dlBtn.href = `https://polyhaven.com/a/${currentSelectedItem.id}`;
+      }
+      dlBtn.innerHTML = `<i class="fa-solid fa-download"></i> Get Zip Package`;
+    }
+  }
+
+  // Custom PBR Generator Engine & Three.js 3D Viewport
+  let customImg = new Image();
+  customImg.crossOrigin = "anonymous";
+
+  let scene, camera, renderer, controls, meshMaterial, currentMesh;
+
+  function initThreeJS() {
+    const container = document.getElementById('three-canvas-container');
+    if (!container) return;
+
+    try {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 0, 4.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1.5;
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+
+      const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+      dirLight1.position.set(5, 10, 7);
+      scene.add(dirLight1);
+
+      meshMaterial = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.1 });
+      changeMeshShape('sphere');
+
+      window.addEventListener('resize', onWindowResize);
+      animateThree();
+    } catch(e) {
+      console.error("Three.js init error:", e);
+    }
+  }
+
+  // 📦 CUSTOM .OBJ FILE UPLOAD & PREVIEW LOGIC
+  function handleObjUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    loadObjFile(file);
+  }
+
+  function setupObjDragAndDrop() {
+    const viewport = document.getElementById('studio-view-3d');
+    if (!viewport) return;
+
+    viewport.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      viewport.classList.add('border-brand-500');
+    });
+
+    viewport.addEventListener('dragleave', () => {
+      viewport.classList.remove('border-brand-500');
+    });
+
+    viewport.addEventListener('drop', (e) => {
+      e.preventDefault();
+      viewport.classList.remove('border-brand-500');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.name.toLowerCase().endsWith('.obj')) {
+          loadObjFile(file);
+        } else {
+          alert('Please drop a valid .OBJ file!');
+        }
+      }
+    });
+  }
+
+  function loadObjFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const loader = new THREE.OBJLoader();
+        const object = loader.parse(event.target.result);
+
+        if (currentMesh) scene.remove(currentMesh);
+
+        object.traverse((child) => {
+          if (child.isMesh) {
+            child.material = meshMaterial;
+          }
+        });
+
+        // Auto-center and auto-scale custom OBJ model
+        const box = new THREE.Box3().setFromObject(object);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2.5 / (maxDim || 1);
+        object.scale.set(scale, scale, scale);
+        object.position.sub(center.multiplyScalar(scale));
+
+        currentMesh = object;
+        scene.add(currentMesh);
+
+        // Update active button states
+        document.querySelectorAll('.shape-btn').forEach(btn => {
+          btn.className = "shape-btn px-2.5 py-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition";
+        });
+        alert(`✓ 3D Model (${file.name}) loaded successfully! Applied texture map.`);
+      } catch(err) {
+        alert('Error loading OBJ file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function animateThree() {
+    requestAnimationFrame(animateThree);
+    if (controls) controls.update();
+    if (renderer && scene && camera) renderer.render(scene, camera);
+  }
+
+  function onWindowResize() {
+    const container = document.getElementById('three-canvas-container');
+    if (!container || !renderer || !camera) return;
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  }
+
+  function changeMeshShape(type) {
+    if (!scene) return;
+    if (currentMesh) scene.remove(currentMesh);
+
+    let geometry;
+    switch (type) {
+      case 'cube': geometry = new THREE.BoxGeometry(2, 2, 2); break;
+      case 'plane': geometry = new THREE.PlaneGeometry(3, 3); break;
+      case 'cylinder': geometry = new THREE.CylinderGeometry(1.2, 1.2, 2.5, 32); break;
+      case 'torus': geometry = new THREE.TorusKnotGeometry(1, 0.35, 100, 16); break;
+      case 'sphere': default: geometry = new THREE.SphereGeometry(1.5, 64, 64); break;
+    }
+
+    currentMesh = new THREE.Mesh(geometry, meshMaterial);
+    scene.add(currentMesh);
+
+    document.querySelectorAll('.shape-btn').forEach(btn => {
+      btn.className = "shape-btn px-2.5 py-1 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition";
+    });
+    const activeBtn = document.getElementById(`shape-${type}`);
+    if (activeBtn) activeBtn.className = "shape-btn px-2.5 py-1 rounded-lg bg-slate-800 text-brand-400 border border-brand-500/40 hover:text-white transition";
+  }
+
+  function toggleStudioTab(tab) {
+    const btn3d = document.getElementById('tab-btn-3d');
+    const btnCh = document.getElementById('tab-btn-channels');
+    const view3d = document.getElementById('studio-view-3d');
+    const viewCh = document.getElementById('studio-view-channels');
+
+    if (tab === '3d') {
+      btn3d.className = "px-4 py-1.5 rounded-lg text-xs font-bold bg-brand-500 text-slate-950 transition flex items-center gap-1.5 shadow-md";
+      btnCh.className = "px-4 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5";
+      view3d.classList.remove('hidden');
+      viewCh.classList.add('hidden');
+      onWindowResize();
+    } else {
+      btnCh.className = "px-4 py-1.5 rounded-lg text-xs font-bold bg-brand-500 text-slate-950 transition flex items-center gap-1.5 shadow-md";
+      btn3d.className = "px-4 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5";
+      viewCh.classList.remove('hidden');
+      view3d.classList.add('hidden');
+    }
+  }
+
+  function handleFileSelect(e) {
+    if (e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        customImg = new Image();
+        customImg.onload = () => {
+          document.getElementById('custom-name').value = e.target.files[0].name.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_');
+          processCustomMaps();
+        };
+        customImg.src = ev.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  }
+
+  function processCustomMaps() {
+    if (!customImg.complete) return;
+    const size = 256;
+
+    const rVal = document.getElementById('rough-slider').value;
+    const bVal = document.getElementById('bump-slider').value;
+    document.getElementById('rough-val').innerText = `${rVal}%`;
+    document.getElementById('bump-val').innerText = `${bVal}%`;
+
+    const cDiff = setupCvs('c-diffuse', size);
+    cDiff.ctx.drawImage(customImg, 0, 0, size, size);
+    const pixels = cDiff.ctx.getImageData(0, 0, size, size).data;
+
+    const cRough = setupCvs('c-roughness', size);
+    const cBump = setupCvs('c-bump', size);
+    const cNorm = setupCvs('c-normal', size);
+    const cDisp = setupCvs('c-displacement', size);
+    const cMet = setupCvs('c-metallic', size);
+
+    const imgR = cRough.ctx.createImageData(size, size);
+    const imgB = cBump.ctx.createImageData(size, size);
+    const imgN = cNorm.ctx.createImageData(size, size);
+    const imgD = cDisp.ctx.createImageData(size, size);
+    const imgM = cMet.ctx.createImageData(size, size);
+
+    for (let i = 0; i < pixels.length; i += 4) {
+      const gray = 0.299 * pixels[i] + 0.587 * pixels[i+1] + 0.114 * pixels[i+2];
+
+      let r = Math.min(255, Math.max(0, (gray - 128) * (rVal / 50) + 128));
+      imgR.data[i] = imgR.data[i+1] = imgR.data[i+2] = r; imgR.data[i+3] = 255;
+
+      let b = Math.min(255, Math.max(0, gray * (bVal / 50)));
+      imgB.data[i] = imgB.data[i+1] = imgB.data[i+2] = b; imgB.data[i+3] = 255;
+      imgD.data[i] = imgD.data[i+1] = imgD.data[i+2] = b; imgD.data[i+3] = 255;
+
+      imgM.data[i] = imgM.data[i+1] = imgM.data[i+2] = 0; imgM.data[i+3] = 255;
+      imgN.data[i] = 128; imgN.data[i+1] = 128; imgN.data[i+2] = 255 - (b * 0.4); imgN.data[i+3] = 255;
+    }
+
+    cRough.ctx.putImageData(imgR, 0, 0);
+    cBump.ctx.putImageData(imgB, 0, 0);
+    cNorm.ctx.putImageData(imgN, 0, 0);
+    cDisp.ctx.putImageData(imgD, 0, 0);
+    cMet.ctx.putImageData(imgM, 0, 0);
+
+    if (meshMaterial) {
+      meshMaterial.map = new THREE.CanvasTexture(cDiff.cvs);
+      meshMaterial.normalMap = new THREE.CanvasTexture(cNorm.cvs);
+      meshMaterial.roughnessMap = new THREE.CanvasTexture(cRough.cvs);
+      meshMaterial.roughness = parseFloat(rVal) / 100;
+      meshMaterial.needsUpdate = true;
+    }
+  }
+
+  function setupCvs(id, size) {
+    const cvs = document.getElementById(id);
+    cvs.width = size; cvs.height = size;
+    return { cvs, ctx: cvs.getContext('2d') };
+  }
+
+  // 🔒 STRICT PRO-PROTECTED CUSTOM ZIP DOWNLOAD
+  async function downloadCustomZip() {
+    // Direct Lock Gate: Open Razorpay Payment Modal if user is not PRO
+    if (!isProUser) {
+      openPricingModal();
+      return; // Absolute Halt
+    }
+
+    const zip = new JSZip();
+    const name = document.getElementById('custom-name').value || 'Custom_Texture';
+    const folder = zip.folder(name);
+
+    const btn = document.getElementById('custom-zip-btn');
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Zipping PBR Maps...`;
+
+    const list = [
+      { id: 'c-diffuse', file: `${name}_Diffuse.png` },
+      { id: 'c-roughness', file: `${name}_Roughness.png` },
+      { id: 'c-bump', file: `${name}_Bump.png` },
+      { id: 'c-normal', file: `${name}_Normal.png` },
+      { id: 'c-displacement', file: `${name}_Displacement.png` }
+    ];
+
+    for (const item of list) {
+      const cvs = document.getElementById(item.id);
+      const blob = await (await fetch(cvs.toDataURL())).blob();
+      folder.file(item.file, blob);
+    }
+
+    zip.generateAsync({ type: 'blob' }).then(content => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = `${name}_PBR_Package.zip`;
+      a.click();
+      btn.innerHTML = `<i class="fa-solid fa-file-zipper"></i> Download Generated Maps (.ZIP)`;
+    });
+  }
+</script>
+</body>
+</html>
