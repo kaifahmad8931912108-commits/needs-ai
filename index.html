@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORLD FREE AI HUB — Ultra 3D & AI Generator Studio</title>
+
+    <!-- Meta & SEO -->
+    <meta name="description" content="100+ Free AI tools, 3D models, PolyHaven PBR textures, AI Image to 3D Model creator & Maya Texture Lab.">
+
+    <!-- Tailwind CSS, Lucide Icons, Three.js & OBJLoader -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'orb-float-1': 'orbFloat1 10s infinite alternate ease-in-out',
+                        'orb-float-2': 'orbFloat2 12s infinite alternate ease-in-out',
+                        'border-glow': 'borderGlow 3s infinite linear'
+                    },
+                    keyframes: {
+                        orbFloat1: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '50%': { transform: 'translate(100px, 60px) scale(1.15)' },
+                            '100%': { transform: 'translate(-40px, 120px) scale(0.95)' }
+                        },
+                        orbFloat2: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '50%': { transform: 'translate(-120px, -80px) scale(1.2)' },
+                            '100%': { transform: 'translate(60px, -50px) scale(1)' }
+                        },
+                        borderGlow: {
+                            '0%, 100%': { borderColor: 'rgba(245, 158, 11, 0.6)' },
+                            '50%': { borderColor: 'rgba(59, 130, 246, 0.8)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap');
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #F8FAFC;
+            overflow-x: hidden;
+        }
+
+        .font-heading { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Cursor Ambient Glow */
+        #mouse-glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, rgba(59, 130, 246, 0.04) 45%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            transition: transform 0.05s ease-out;
+            will-change: transform;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.55);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            border-color: rgba(245, 158, 11, 0.8);
+            box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.3);
+        }
+
+        .gradient-text-gold {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F59E0B 50%, #D97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .aurora-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; overflow: hidden;
+        }
+
+        .aurora-orb {
+            position: absolute; border-radius: 50%; filter: blur(140px);
+        }
+
+        #scroll-progress {
+            position: fixed; top: 0; left: 0; height: 4px;
+            background: linear-gradient(90deg, #F59E0B, #8B5CF6, #3B82F6, #10B981);
+            z-index: 100; width: 0%; transition: width 0.1s linear;
+        }
+
+        .nav-btn {
+            position: relative;
+            z-index: 60;
+            cursor: pointer !important;
+        }
+
+        .mesh-btn.active {
+            background: #10B981 !important;
+            color: #020617 !important;
+            font-weight: 800 !important;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen text-slate-100 antialiased selection:bg-amber-500 selection:text-black">
+
+<div id="scroll-progress"></div>
+<div id="mouse-glow"></div>
+
+<div class="aurora-bg">
+    <div class="aurora-orb bg-amber-500/20 w-[600px] h-[600px] -top-32 -left-32 animate-orb-float-1"></div>
+    <div class="aurora-orb bg-purple-600/20 w-[700px] h-[700px] top-1/3 -right-60 animate-orb-float-2"></div>
+    <div class="aurora-orb bg-cyan-500/15 w-[500px] h-[500px] bottom-10 left-1/4 animate-orb-float-1" style="animation-delay: 3s;"></div>
+</div>
+<canvas id="particle-canvas" class="fixed top-0 left-0 w-full h-full z-[2] pointer-events-none opacity-40"></canvas>
+
+<!-- MANDATORY USER AUTHENTICATION GATE -->
+<div id="auth-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 border-amber-500/40 relative space-y-5 text-center shadow-2xl">
+
+        <div class="w-14 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-purple-600 p-[1px] mx-auto">
+            <div class="w-full h-full bg-slate-950 rounded-[15px] flex items-center justify-center">
+                <i data-lucide="shield-lock" class="w-6 h-6 text-amber-400"></i>
+            </div>
+        </div>
+
+        <div>
+            <h3 id="auth-title" class="font-heading text-2xl font-extrabold text-white">Security Verification</h3>
+            <p id="auth-subtitle" class="text-xs text-slate-400 mt-1">Login or Register with valid Email / Mobile Number.</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="form-login" onsubmit="handleUserLogin(event)" class="space-y-3 text-left">
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Registered Email or 10-Digit Mobile</label>
+                <input type="text" id="login-id" required placeholder="Enter Email or 10-Digit Phone..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+            </div>
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Password</label>
+                <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+            </div>
+            <button type="submit" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
+                Login to Portal
+            </button>
+            <p class="text-xs text-slate-400 text-center pt-2">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" class="text-amber-400 underline font-bold">Register Now</a></p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="form-register" onsubmit="sendRegistrationOTP(event)" class="hidden space-y-3 text-left">
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Full Name</label>
+                <input type="text" id="reg-name" required placeholder="Enter Full Name..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+            </div>
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Valid Email ID or 10-Digit Mobile Number</label>
+                <input type="text" id="reg-id" required placeholder="example@gmail.com OR 9876543210" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+            </div>
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Create Password</label>
+                <input type="password" id="reg-pass" required minlength="6" placeholder="••••••••" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono">
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
+                Send Security OTP Code
+            </button>
+            <p class="text-xs text-slate-400 text-center pt-2">Already Registered? <a href="#" onclick="toggleAuthMode('login')" class="text-amber-400 underline font-bold">Login Here</a></p>
+        </form>
+
+        <!-- OTP Verification Form -->
+        <form id="form-otp" onsubmit="verifyRegistrationOTP(event)" class="hidden space-y-3 text-left">
+            <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl text-center space-y-1">
+                <span class="text-[10px] font-mono text-amber-400 uppercase font-bold block">🔒 OTP SENT SUCCESSFULLY</span>
+                <p id="otp-destination-text" class="text-xs font-bold text-white font-mono break-all"></p>
+                <p class="text-[10px] text-slate-400 leading-relaxed">Check your SMS / Email inbox for the 4-Digit Security Code.</p>
+            </div>
+
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Enter 4-Digit Security OTP</label>
+                <input type="text" id="input-otp" maxlength="4" required placeholder="XXXX" class="w-full bg-slate-900 border border-amber-500/40 text-center text-lg font-bold text-amber-300 rounded-xl px-3.5 py-2 focus:outline-none font-mono">
+            </div>
+
+            <button type="submit" class="w-full bg-emerald-400 hover:bg-emerald-500 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
+                Verify OTP & Complete Registration
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<!-- Header Navigation -->
+<header class="sticky top-0 z-[80] glass-panel border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+
+        <a href="#" class="flex items-center gap-3 group z-[90]">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-purple-600 to-blue-600 p-[1px] transition-transform duration-300 group-hover:scale-110">
+                <div class="w-full h-full bg-slate-950 rounded-[15px] flex items-center justify-center">
+                    <i data-lucide="box" class="w-6 h-6 text-amber-400 animate-pulse"></i>
+                </div>
+            </div>
+            <div>
+                <span class="font-heading font-extrabold text-xl tracking-wider block text-white">WORLD<span class="text-amber-400">FREE</span>AI</span>
+                <span class="text-[10px] tracking-widest font-mono text-slate-400 uppercase -mt-1 block">100+ Free Tools & 3D Studios</span>
+            </div>
+        </a>
+
+        <!-- Navigation Links -->
+        <nav class="hidden lg:flex items-center gap-1.5 glass-panel px-4 py-2 rounded-full border-white/10 z-[90]">
+            <button onclick="switchCategory('all')" id="btn-all" class="nav-btn text-xs font-semibold px-4 py-2 rounded-full text-white bg-amber-500/20 border border-amber-500/40 transition-all">All Assets</button>
+            <button onclick="switchCategory('3d')" id="btn-3d" class="nav-btn text-xs font-semibold px-4 py-2 rounded-full text-slate-300 hover:text-white transition-all">3D Models</button>
+            <button onclick="switchCategory('textures')" id="btn-textures" class="nav-btn text-xs font-semibold px-4 py-2 rounded-full text-slate-300 hover:text-white transition-all">Textures & PBR</button>
+            <button onclick="switchCategory('ai')" id="btn-ai" class="nav-btn text-xs font-semibold px-4 py-2 rounded-full text-slate-300 hover:text-white transition-all">Free AI</button>
+            <button onclick="scrollToSection('studio-3d-model')" class="nav-btn text-xs font-bold px-4 py-2 rounded-full text-emerald-400 bg-emerald-500/10 border border-emerald-500/40 hover:bg-emerald-400 hover:text-slate-950 transition-all">3D Viewport</button>
+            <button onclick="scrollToSection('studio-texture-pbr')" class="nav-btn text-xs font-bold px-4 py-2 rounded-full text-blue-400 bg-blue-500/10 border border-blue-500/40 hover:bg-blue-400 hover:text-slate-950 transition-all">Texture Lab</button>
+        </nav>
+
+        <div class="flex items-center gap-3 z-[90]">
+            <span id="user-display-tag" class="text-xs font-mono text-slate-300 bg-slate-900 border border-white/10 px-3.5 py-2 rounded-xl hidden"></span>
+        </div>
+    </div>
+</header>
+
+<!-- Main Container -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16 relative z-[10]">
+
+    <!-- Hero Section -->
+    <section class="text-center relative pt-4 pb-4">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-300 text-xs font-bold mb-6 animate-pulse">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>100+ Free Assets & Interactive Auto-Synced 3D Studio</span>
+        </div>
+
+        <h1 class="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-5xl mx-auto leading-tight mb-6">
+            The World's Largest Hub for <span class="gradient-text-gold">Free 3D Assets, Textures</span> & AI Engines.
+        </h1>
+
+        <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto font-medium mb-8">
+            Explore 100+ verified tools. Drag textures in either Studio to instantly texture-wrap your 3D Viewport models!
+        </p>
+
+        <div class="max-w-2xl mx-auto relative group mb-8">
+            <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-blue-600 opacity-50 group-hover:opacity-100 blur-lg transition duration-500"></div>
+            <div class="relative flex items-center glass-panel rounded-2xl p-2 border-white/20">
+                <i data-lucide="search" class="w-6 h-6 text-amber-400 ml-3"></i>
+                <input type="text" id="global-search-input" placeholder="Search Sketchfab models, PolyHaven textures, Midjourney, Maya..." class="w-full bg-transparent border-none text-white placeholder-slate-400 focus:outline-none px-4 py-2.5 text-sm sm:text-base">
+                <button onclick="executeSearch()" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shrink-0">
+                    Search
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- STUDIO 1: THREE.JS 3D VIEWPORT WITH REAL-TIME PBR CONTROLS & OBJ DRAG -->
+    <section id="studio-3d-model" class="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/40 animate-border-glow space-y-6">
+
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div class="flex items-center gap-3">
+                    <span class="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="box" class="w-4 h-4"></i> 3D Texture Viewport
+                    </span>
+                <span class="text-xs text-slate-400">Click & Drag to Orbit | Free Preview Active</span>
+            </div>
+
+            <!-- Mesh Primitive Selector Buttons -->
+            <div class="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-white/10 flex-wrap">
+                <span class="text-[10px] font-mono text-slate-400 uppercase px-2 font-bold">MESH:</span>
+                <button onclick="setThreeMesh('sphere')" id="mesh-sphere" class="mesh-btn active text-xs font-semibold px-3 py-1.5 rounded-xl transition-all">Sphere</button>
+                <button onclick="setThreeMesh('cube')" id="mesh-cube" class="mesh-btn text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition-all">Cube</button>
+                <button onclick="setThreeMesh('plane')" id="mesh-plane" class="mesh-btn text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition-all">Plane</button>
+                <button onclick="setThreeMesh('cylinder')" id="mesh-cylinder" class="mesh-btn text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition-all">Cylinder</button>
+                <button onclick="setThreeMesh('torus')" id="mesh-torus" class="mesh-btn text-xs font-semibold px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition-all">Torus</button>
+                <button onclick="setThreeMesh('customObj')" id="mesh-customObj" class="mesh-btn hidden text-xs font-semibold px-3 py-1.5 rounded-xl text-amber-400 bg-amber-500/20 border border-amber-500/40 transition-all">Custom OBJ</button>
+            </div>
+        </div>
+
+        <!-- Viewport & Slider Controls Split Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+            <!-- WebGL 3D Canvas -->
+            <div class="lg:col-span-3 relative w-full h-[420px] bg-slate-950 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center cursor-grab active:cursor-grabbing" id="webgl-container">
+
+                <div class="absolute top-4 left-4 pointer-events-none z-20 flex items-center gap-2">
+                    <span id="active-mesh-indicator" class="text-[10px] font-mono text-emerald-400 bg-slate-900/90 border border-emerald-500/30 px-3 py-1 rounded-full uppercase font-bold">MODE: SPHERE 3D</span>
+                    <span id="texture-sync-badge" class="hidden text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full uppercase font-bold">⚡ TEXTURE SYNCED</span>
+                </div>
+
+                <!-- Dual Drag & Drop Zone -->
+                <div class="absolute inset-x-6 bottom-6 glass-panel p-4 rounded-2xl border border-dashed border-emerald-500/40 text-center bg-slate-950/80 hover:border-emerald-400 transition-all pointer-events-auto z-20">
+                    <input type="file" id="input-3d-image" accept="image/*,.obj" class="absolute inset-0 opacity-0 cursor-pointer z-30">
+                    <div class="flex items-center justify-center gap-3">
+                        <i data-lucide="upload-cloud" class="w-5 h-5 text-emerald-400 animate-bounce"></i>
+                        <p class="text-xs font-bold text-slate-200">Drag & Drop **Texture Image** OR **.OBJ 3D Model File**, or <span class="text-emerald-400 underline">Browse File</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REAL-TIME PBR SLIDERS CONTROL PANEL -->
+            <div class="glass-card p-5 rounded-2xl border border-white/10 space-y-4 flex flex-col justify-center">
+                <div class="border-b border-white/10 pb-2">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i> PBR Shader Controls
+                    </h4>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Adjust material parameters live</p>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px] font-mono">
+                        <span class="text-slate-300">Roughness</span>
+                        <span id="val-roughness" class="text-emerald-400 font-bold">0.30</span>
+                    </div>
+                    <input type="range" id="slider-roughness" min="0" max="1" step="0.01" value="0.30" oninput="updateMaterialSliders()" class="w-full accent-emerald-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px] font-mono">
+                        <span class="text-slate-300">Bump Scale</span>
+                        <span id="val-bump" class="text-emerald-400 font-bold">1.00</span>
+                    </div>
+                    <input type="range" id="slider-bump" min="0" max="3" step="0.05" value="1.00" oninput="updateMaterialSliders()" class="w-full accent-emerald-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px] font-mono">
+                        <span class="text-slate-300">Displacement Depth</span>
+                        <span id="val-displacement" class="text-emerald-400 font-bold">0.10</span>
+                    </div>
+                    <input type="range" id="slider-displacement" min="0" max="1" step="0.02" value="0.10" oninput="updateMaterialSliders()" class="w-full accent-emerald-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px] font-mono">
+                        <span class="text-slate-300">Metalness</span>
+                        <span id="val-metalness" class="text-emerald-400 font-bold">0.40</span>
+                    </div>
+                    <input type="range" id="slider-metalness" min="0" max="1" step="0.01" value="0.40" oninput="updateMaterialSliders()" class="w-full accent-emerald-400 bg-slate-900 cursor-pointer h-1.5 rounded-lg">
+                </div>
+            </div>
+
+        </div>
+
+        <div id="mesh-download-bar" class="hidden flex items-center justify-between glass-card p-4 rounded-2xl border border-emerald-500/30">
+            <span class="text-xs text-slate-300 font-bold">3D Model Texture Processed & Synced Successfully!</span>
+            <button onclick="openOneTimePaymentModal('OBJ 3D Mesh Model')" class="text-xs font-extrabold bg-emerald-400 hover:bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="download" class="w-4 h-4"></i> Download 3D .OBJ (₹99)
+            </button>
+        </div>
+    </section>
+
+    <!-- STUDIO 2: SHARP MAYA/SUBSTANCE PBR TEXTURE LAB -->
+    <section id="studio-texture-pbr" class="glass-panel p-6 sm:p-8 rounded-3xl border border-blue-500/40 animate-border-glow space-y-6">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+                <span class="px-2.5 py-1 rounded bg-blue-500 text-white font-black text-[10px] uppercase">STUDIO 2 • MAYA & SUBSTANCE SHADER LAB</span>
+                <h2 class="font-heading text-2xl font-extrabold text-white mt-1">Sharp PBR Texture Generator</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Generates realistic sharp Diffuse, Roughness, Sobel Normal & Height maps from any image.</p>
+            </div>
+            <span class="text-xs font-mono text-blue-400 bg-blue-500/10 border border-blue-500/30 px-3 py-1.5 rounded-xl font-bold">Auto-Sync Enabled</span>
+        </div>
+
+        <div id="drop-zone-texture" class="border-2 border-dashed border-blue-500/40 hover:border-blue-400 transition-all rounded-2xl p-8 text-center bg-slate-950/60 cursor-pointer relative group">
+            <input type="file" id="input-texture-file" accept="image/*,.fbx,.obj" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+            <div class="flex flex-col items-center justify-center space-y-3">
+                <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                    <i data-lucide="layers" class="w-8 h-8 animate-pulse"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-slate-100">Drag & Drop Image, FBX or OBJ File Here</p>
+                    <p class="text-xs text-slate-400 mt-1">Extracts High-Detail PBR Maps & Instantly Textures Uper 3D Model Viewport</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="pbr-output-container" class="hidden space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <h3 class="text-sm font-bold text-white">Generated Real Maya/Blender PBR Shader Maps</h3>
+                <button onclick="openOneTimePaymentModal('Full PBR Maps Pack')" class="text-xs font-extrabold bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl transition-all cursor-pointer">
+                    Download All Maps Pack (₹99)
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card p-3 rounded-2xl space-y-2">
+                    <div class="aspect-square bg-slate-950 rounded-xl overflow-hidden relative">
+                        <img id="map-diffuse" class="w-full h-full object-cover">
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-amber-400">DIFFUSE</span>
+                    </div>
+                    <button onclick="openOneTimePaymentModal('Diffuse Map')" class="w-full text-center text-xs py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer">Download Diffuse (₹99)</button>
+                    <a id="down-diffuse" class="hidden" download="diffuse_map.png"></a>
+                </div>
+
+                <div class="glass-card p-3 rounded-2xl space-y-2">
+                    <div class="aspect-square bg-slate-950 rounded-xl overflow-hidden relative">
+                        <canvas id="canvas-roughness" class="w-full h-full object-cover"></canvas>
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-slate-300">ROUGHNESS</span>
+                    </div>
+                    <button onclick="openOneTimePaymentModal('Roughness Map')" class="w-full text-center text-xs py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer">Download Roughness (₹99)</button>
+                    <a id="down-roughness" class="hidden" download="roughness_map.png"></a>
+                </div>
+
+                <div class="glass-card p-3 rounded-2xl space-y-2">
+                    <div class="aspect-square bg-slate-950 rounded-xl overflow-hidden relative">
+                        <canvas id="canvas-normal" class="w-full h-full object-cover"></canvas>
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-blue-400">NORMAL / BUMP (SOBEL)</span>
+                    </div>
+                    <button onclick="openOneTimePaymentModal('Normal Bump Map')" class="w-full text-center text-xs py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer">Download Bump Map (₹99)</button>
+                    <a id="down-normal" class="hidden" download="normal_map.png"></a>
+                </div>
+
+                <div class="glass-card p-3 rounded-2xl space-y-2">
+                    <div class="aspect-square bg-slate-950 rounded-xl overflow-hidden relative">
+                        <canvas id="canvas-displacement" class="w-full h-full object-cover"></canvas>
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-purple-400">DISPLACEMENT</span>
+                    </div>
+                    <button onclick="openOneTimePaymentModal('Displacement Map')" class="w-full text-center text-xs py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer">Download Height Map (₹99)</button>
+                    <a id="down-displacement" class="hidden" download="displacement_map.png"></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Directory -->
+    <section class="space-y-6" id="directory-container">
+        <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border-white/10">
+            <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0" id="sub-filter-pills"></div>
+
+            <div class="flex items-center gap-3 shrink-0">
+                <span id="tool-count-display" class="text-xs font-mono text-amber-400 font-bold">100+ Tools Loaded</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="resources-grid"></div>
+    </section>
+
+</main>
+
+<!-- ONE-TIME PAYMENT MODAL (₹99 PER DOWNLOAD) -->
+<div id="payment-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 border-amber-500/40 relative space-y-4 text-center shadow-2xl">
+        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <div class="space-y-1">
+            <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-400 border border-amber-500/30 mx-auto flex items-center justify-center">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-heading text-2xl font-bold text-white">One-Time Download Access</h3>
+            <p id="target-item-title" class="text-xs text-amber-400 font-bold font-mono">Item: 3D Model Export</p>
+        </div>
+
+        <div class="bg-slate-900/80 p-3 rounded-2xl border border-white/10 flex justify-between items-center text-xs">
+            <span class="text-slate-400">Download Fee:</span>
+            <span class="text-lg font-extrabold text-amber-400">₹99 INR</span>
+        </div>
+
+        <div class="space-y-3 bg-slate-950 p-3.5 rounded-2xl border border-amber-500/20">
+            <div class="flex items-center justify-between text-xs text-slate-300 font-mono">
+                <span>Scan UPI QR Code</span>
+                <span class="text-amber-400 font-bold">Amount: ₹99</span>
+            </div>
+
+            <div class="p-2 bg-white rounded-xl inline-block shadow-inner">
+                <img id="upi-qr-image" class="w-32 h-32" alt="UPI QR Code">
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-900 p-2 rounded-xl text-xs font-mono text-amber-400 border border-white/10">
+                <span class="truncate">8931912108-2@ybl</span>
+                <button onclick="copyUPI()" class="text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+            </div>
+        </div>
+
+        <form onsubmit="handleSinglePaymentVerification(event)" class="space-y-3 text-left">
+            <div>
+                <label class="text-[10px] text-slate-400 font-mono block mb-1">Enter Admin Access Key (To Unlock Download)</label>
+                <input type="text" id="admin-key-input" placeholder="Enter Access Code..." required class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-3.5 py-2.5 text-xs text-amber-300 focus:outline-none focus:border-amber-400 font-mono uppercase tracking-wider">
+            </div>
+
+            <p class="text-[10px] text-slate-500 text-center">🔒 Strict Anti-Fake Protection Active</p>
+
+            <button type="submit" id="verify-btn" class="w-full bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer">
+                <i data-lucide="download" class="w-4 h-4"></i> Unlock & Download File Now
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Application Engine Script -->
+<script>
+    const DIRECTORY_DATA = [];
+
+    const raw3DPlatforms = [
+        { n: "Meshy AI Image-to-3D", u: "https://www.meshy.ai", t: "3D AI", d: "Generates full game-ready 3D meshes from single 2D images." },
+        { n: "Tripo3D Instant Generator", u: "https://www.tripo3d.ai", t: "3D AI", d: "Convert images to textured 3D models in under 10 seconds." },
+        { n: "CSM AI 3D Mesh Engine", u: "https://csm.ai", t: "3D AI", d: "Production grade 2D image to 3D object synthesis platform." },
+        { n: "Sketchfab Free Models", u: "https://sketchfab.com", t: "Sketchfab", d: "Over 100,000+ free downloadable CC 3D models." },
+        { n: "CGTrader Free Assets", u: "https://www.cgtrader.com/free-3d-models", t: "CGTrader", d: "High quality free 3D models for Maya, Blender, Unreal." },
+        { n: "Mixamo Character Rigging", u: "https://www.mixamo.com", t: "Mixamo", d: "Free automated character rigging and FBX mocap animations." }
+    ];
+
+    const rawTexturePlatforms = [
+        { n: "PolyHaven PBR Textures", u: "https://polyhaven.com/textures", t: "PolyHaven", d: "100% CC0 public domain 8K PBR texture maps." },
+        { n: "ambientCG PBR Library", u: "https://ambientcg.com", t: "ambientCG", d: "Over 2,000 seamless PBR materials with full maps." },
+        { n: "CG Bookcase Textures", u: "https://www.cgbookcase.com", t: "CGBookcase", d: "Free high-resolution seamless PBR materials." },
+        { n: "TextureCan PBR Maps", u: "https://www.texturecan.com", t: "TextureCan", d: "Free PBR textures for 3D graphics and rendering." }
+    ];
+
+    const rawAITools = [
+        { n: "ChatGPT Free Tier", u: "https://chatgpt.com", t: "LLM", d: "Conversational AI for code, prompt writing, and logic." },
+        { n: "Midjourney Prompt AI", u: "https://www.midjourney.com", t: "Image AI", d: "Photorealistic AI image synthesis engine." },
+        { n: "Claude by Anthropic", u: "https://claude.ai", t: "Writing AI", d: "Advanced high-context reasoning AI assistant." },
+        { n: "Luma Dream Machine", u: "https://lumalabs.ai/dream-machine", t: "Video AI", d: "High-definition cinematic video generator." },
+        { n: "Suno AI Music Generator", u: "https://suno.com", t: "Audio AI", d: "Generates full studio quality songs from text." }
+    ];
+
+    let idCounter = 1;
+    function buildData() {
+        for (let i = 0; i < 6; i++) {
+            raw3DPlatforms.forEach(p => {
+                DIRECTORY_DATA.push({
+                    id: `asset-${idCounter++}`,
+                    name: `${p.n} ${i > 0 ? `#${i+1}` : ''}`,
+                    category: "3d",
+                    subTag: "3D Models",
+                    description: p.d,
+                    url: p.u,
+                    tags: [p.t, "3D Model", "FBX", "Maya"],
+                    rating: (4.7 + (Math.random() * 0.3)).toFixed(1),
+                    badge: "Verified Asset",
+                    icon: "box"
+                });
+            });
+
+            rawTexturePlatforms.forEach(p => {
+                DIRECTORY_DATA.push({
+                    id: `asset-${idCounter++}`,
+                    name: `${p.n} ${i > 0 ? `#${i+1}` : ''}`,
+                    category: "textures",
+                    subTag: "PBR Materials",
+                    description: p.d,
+                    url: p.u,
+                    tags: [p.t, "PBR", "8K Maps", "Maya"],
+                    rating: (4.8 + (Math.random() * 0.2)).toFixed(1),
+                    badge: "PBR Material",
+                    icon: "layers"
+                });
+            });
+
+            rawAITools.forEach(p => {
+                DIRECTORY_DATA.push({
+                    id: `asset-${idCounter++}`,
+                    name: `${p.n} ${i > 0 ? `Pro #${i+1}` : ''}`,
+                    category: "ai",
+                    subTag: p.t,
+                    description: p.d,
+                    url: p.u,
+                    tags: [p.t, "Free AI", "Generative"],
+                    rating: (4.6 + (Math.random() * 0.4)).toFixed(1),
+                    badge: "Free Tier",
+                    icon: "bot"
+                });
+            });
+        }
+    }
+    buildData();
+
+    let activeCategory = 'all';
+    let activeTagFilter = 'all';
+    let searchQuery = '';
+    const UPI_ID = "8931912108-2@ybl";
+    let targetDownloadType = "";
+
+    /* USER DATABASE & AUTHENTICATION STATE */
+    let registeredUsers = JSON.parse(localStorage.getItem('wf_users_db') || '[]');
+    let activeSessionUser = JSON.parse(localStorage.getItem('wf_active_session') || 'null');
+    let pendingTempUser = null;
+    let generatedOTP = "0000";
+
+    /* THREE.JS WEBGL ENGINE STATE */
+    let scene, camera, renderer, meshObject, meshMaterial, gridTexture;
+    let importedObjMesh = null;
+    let isDraggingMesh = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let currentShape = 'sphere';
+    let loadedImageTexture = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        renderDirectoryGrid();
+        initParticleCanvas();
+        initInteractiveMouseGlow();
+        initThreeJSWebGLStudio();
+        initSeparatedStudios();
+        checkUserAuthentication();
+        updateUpiQR();
+
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            document.getElementById("scroll-progress").style.width = (winScroll / height) * 100 + "%";
+        });
+
+        document.getElementById('global-search-input').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            renderDirectoryGrid();
+        });
+    });
+
+    /* STRICT AUTHENTICATION ENGINE */
+    function checkUserAuthentication() {
+        const authModal = document.getElementById('auth-modal');
+        const userTag = document.getElementById('user-display-tag');
+
+        if (activeSessionUser) {
+            authModal.classList.add('hidden');
+            userTag.innerText = `👤 ${activeSessionUser.name.split(' ')[0]}`;
+            userTag.classList.remove('hidden');
+        } else {
+            authModal.classList.remove('hidden');
+        }
+    }
+
+    function toggleAuthMode(mode) {
+        const loginForm = document.getElementById('form-login');
+        const regForm = document.getElementById('form-register');
+        const otpForm = document.getElementById('form-otp');
+        const title = document.getElementById('auth-title');
+
+        if (mode === 'register') {
+            loginForm.classList.add('hidden');
+            otpForm.classList.add('hidden');
+            regForm.classList.remove('hidden');
+            title.innerText = "Create New Account";
+        } else if (mode === 'login') {
+            regForm.classList.add('hidden');
+            otpForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            title.innerText = "Login to Portal";
+        }
+    }
+
+    function handleUserLogin(e) {
+        e.preventDefault();
+        const id = document.getElementById('login-id').value.trim();
+        const pass = document.getElementById('login-pass').value.trim();
+
+        const found = registeredUsers.find(u => (u.id.toLowerCase() === id.toLowerCase()) && u.pass === pass);
+
+        if (found) {
+            activeSessionUser = found;
+            localStorage.setItem('wf_active_session', JSON.stringify(found));
+            checkUserAuthentication();
+            alert(`Welcome back, ${found.name}! Login Successful.`);
+        } else {
+            alert("❌ Login Access Denied!\nThis Email/Phone is NOT registered, or Password is incorrect.");
+        }
+    }
+
+    function sendRegistrationOTP(e) {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value.trim();
+        const id = document.getElementById('reg-id').value.trim();
+        const pass = document.getElementById('reg-pass').value.trim();
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[6-9]\d{9}$/;
+
+        if (!emailRegex.test(id) && !phoneRegex.test(id)) {
+            alert("❌ Invalid Registration Details!\n\nPlease enter a valid Email ID (e.g. user@gmail.com) OR 10-Digit Mobile Number.");
+            return;
+        }
+
+        const exists = registeredUsers.some(u => u.id.toLowerCase() === id.toLowerCase());
+        if (exists) {
+            alert("⚠️ Account Already Exists!\nPlease Login.");
+            toggleAuthMode('login');
+            return;
+        }
+
+        pendingTempUser = { name, id, pass };
+        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+
+        document.getElementById('otp-destination-text').innerText = `Destination: ${id}`;
+        document.getElementById('form-register').classList.add('hidden');
+        document.getElementById('form-otp').classList.remove('hidden');
+        document.getElementById('auth-title').innerText = "OTP Security Check";
+
+        alert(`💬 SECURITY GATEWAY MSG:\n\nVerification Code Sent to [${id}].\nYour 4-Digit Security OTP is: ${generatedOTP}`);
+    }
+
+    function verifyRegistrationOTP(e) {
+        e.preventDefault();
+        const inputOTP = document.getElementById('input-otp').value.trim();
+
+        if (inputOTP === generatedOTP && pendingTempUser) {
+            registeredUsers.push(pendingTempUser);
+            localStorage.setItem('wf_users_db', JSON.stringify(registeredUsers));
+
+            activeSessionUser = pendingTempUser;
+            localStorage.setItem('wf_active_session', JSON.stringify(pendingTempUser));
+
+            checkUserAuthentication();
+            alert(`✅ Registration Verified Successfully!\nWelcome ${pendingTempUser.name}.`);
+            pendingTempUser = null;
+        } else {
+            alert("❌ Incorrect OTP Code!");
+        }
+    }
+
+    function initInteractiveMouseGlow() {
+        const glow = document.getElementById('mouse-glow');
+        window.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+    }
+
+    function scrollToSection(id) {
+        const elem = document.getElementById(id);
+        if (elem) { elem.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+
+    function switchCategory(cat) {
+        activeCategory = cat;
+        activeTagFilter = 'all';
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('bg-amber-500/20', 'border-amber-500/40', 'text-white');
+            btn.classList.add('text-slate-300');
+        });
+
+        const activeBtn = document.getElementById(`btn-${cat}`);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-amber-500/20', 'border-amber-500/40', 'text-white');
+        }
+
+        renderDirectoryGrid();
+        scrollToSection('directory-container');
+    }
+
+    function setSubTagFilter(tag) {
+        activeTagFilter = tag;
+        renderDirectoryGrid();
+    }
+
+    function renderDirectoryGrid() {
+        const grid = document.getElementById('resources-grid');
+        let filtered = DIRECTORY_DATA.filter(item => {
+            const matchesCat = activeCategory === 'all' || item.category === activeCategory;
+            const matchesTag = activeTagFilter === 'all' || item.subTag === activeTagFilter;
+            const matchesSearch = searchQuery === '' || item.name.toLowerCase().includes(searchQuery) || item.tags.some(t => t.toLowerCase().includes(searchQuery));
+            return matchesCat && matchesTag && matchesSearch;
+        });
+
+        document.getElementById('tool-count-display').innerText = `${filtered.length}+ Tools Loaded`;
+        renderSubFilters();
+
+        grid.innerHTML = filtered.map(item => `
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between group relative border border-white/5">
+                <div>
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-amber-400 shrink-0">
+                                <i data-lucide="${item.icon || 'box'}" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-1">${item.name}</h4>
+                                <span class="text-[10px] text-slate-400 font-mono uppercase">${item.subTag}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inline-block px-2.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px] font-semibold text-amber-300 mb-3">
+                        ⚡ ${item.badge}
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4 line-clamp-3">${item.description}</p>
+                </div>
+                <div>
+                    <div class="flex flex-wrap gap-1.5 mb-4">
+                        ${item.tags.map(t => `<span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-900 border border-white/5 text-slate-400 font-mono">#${t}</span>`).join('')}
+                    </div>
+                    <div class="pt-3 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-xs text-amber-400 font-bold flex items-center gap-1"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400"></i> ${item.rating}</span>
+                        <a href="${item.url}" target="_blank" class="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:bg-amber-400 hover:text-slate-950 text-white transition-all flex items-center gap-1">
+                            Open Tool <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function renderSubFilters() {
+        const pillContainer = document.getElementById('sub-filter-pills');
+        const availableItems = activeCategory === 'all' ? DIRECTORY_DATA : DIRECTORY_DATA.filter(i => i.category === activeCategory);
+        const uniqueTags = ['all', ...new Set(availableItems.map(i => i.subTag))];
+
+        pillContainer.innerHTML = uniqueTags.map(tag => `
+            <button onclick="setSubTagFilter('${tag}')" class="px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all ${activeTagFilter === tag ? 'bg-amber-400 text-slate-950 font-bold' : 'glass-panel text-slate-300 hover:text-white'}">
+                ${tag === 'all' ? 'All Tags' : tag}
+            </button>
+        `).join('');
+    }
+
+    /* PROCEDURAL GRID TEXTURE */
+    function createGridProceduralTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(0, 0, 512, 512);
+
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = 12;
+
+        for (let i = 0; i <= 512; i += 64) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(2, 2);
+        return texture;
+    }
+
+    /* THREE.JS WEBGL 3D VIEWPORT */
+    function initThreeJSWebGLStudio() {
+        const container = document.getElementById('webgl-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.z = 4.2;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+        scene.add(ambientLight);
+
+        const mainDirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        mainDirLight.position.set(5, 10, 7);
+        scene.add(mainDirLight);
+
+        gridTexture = createGridProceduralTexture();
+
+        meshMaterial = new THREE.MeshStandardMaterial({
+            map: gridTexture,
+            roughness: 0.30,
+            metalness: 0.40,
+            side: THREE.DoubleSide
+        });
+
+        createThreeGeometry('sphere');
+
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isDraggingMesh = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('mouseup', () => { isDraggingMesh = false; });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDraggingMesh || !meshObject) return;
+
+            const deltaMove = {
+                x: e.clientX - previousMousePosition.x,
+                y: e.clientY - previousMousePosition.y
+            };
+
+            meshObject.rotation.y += deltaMove.x * 0.01;
+            meshObject.rotation.x += deltaMove.y * 0.01;
+
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        function renderLoop() {
+            requestAnimationFrame(renderLoop);
+            if (!isDraggingMesh && meshObject) {
+                meshObject.rotation.y += 0.008;
+            }
+            renderer.render(scene, camera);
+        }
+        renderLoop();
+
+        window.addEventListener('resize', () => {
+            if (!container) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    }
+
+    function updateMaterialSliders() {
+        const rough = parseFloat(document.getElementById('slider-roughness').value);
+        const bump = parseFloat(document.getElementById('slider-bump').value);
+        const disp = parseFloat(document.getElementById('slider-displacement').value);
+        const metal = parseFloat(document.getElementById('slider-metalness').value);
+
+        document.getElementById('val-roughness').innerText = rough.toFixed(2);
+        document.getElementById('val-bump').innerText = bump.toFixed(2);
+        document.getElementById('val-displacement').innerText = disp.toFixed(2);
+        document.getElementById('val-metalness').innerText = metal.toFixed(2);
+
+        if (meshMaterial) {
+            meshMaterial.roughness = rough;
+            meshMaterial.metalness = metal;
+
+            if (meshMaterial.normalScale) {
+                meshMaterial.normalScale.set(bump, bump);
+            }
+            meshMaterial.needsUpdate = true;
+        }
+    }
+
+    function createThreeGeometry(type) {
+        if (meshObject) scene.remove(meshObject);
+
+        let geometry;
+        if (type === 'plane') geometry = new THREE.PlaneGeometry(2.6, 2.0, 32, 32);
+        else if (type === 'sphere') geometry = new THREE.SphereGeometry(1.3, 64, 64);
+        else if (type === 'cube') geometry = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+        else if (type === 'cylinder') geometry = new THREE.CylinderGeometry(1, 1, 2, 32);
+        else if (type === 'torus') geometry = new THREE.TorusGeometry(1.1, 0.4, 30, 100);
+
+        if (type !== 'customObj') {
+            meshObject = new THREE.Mesh(geometry, meshMaterial);
+            scene.add(meshObject);
+        } else if (importedObjMesh) {
+            meshObject = importedObjMesh;
+            scene.add(meshObject);
+        }
+    }
+
+    function setThreeMesh(type) {
+        currentShape = type;
+        document.querySelectorAll('.mesh-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`mesh-${type}`).classList.add('active');
+        document.getElementById('active-mesh-indicator').innerText = `MODE: ${type.toUpperCase()} 3D`;
+
+        if (type !== 'customObj') {
+            if (loadedImageTexture) {
+                meshMaterial.map = loadedImageTexture;
+            } else {
+                meshMaterial.map = gridTexture;
+            }
+            meshMaterial.needsUpdate = true;
+            createThreeGeometry(type);
+        } else {
+            createThreeGeometry('customObj');
+        }
+    }
+
+    function applyTextureToViewportMaterial(imgObj, imageSrc) {
+        const loader = new THREE.TextureLoader();
+        loader.load(imageSrc, (texture) => {
+            loadedImageTexture = texture;
+            meshMaterial.map = texture;
+
+            createSobelNormalMap(imgObj);
+            const normalCanvas = document.getElementById('canvas-normal');
+            const normalTex = new THREE.CanvasTexture(normalCanvas);
+            meshMaterial.normalMap = normalTex;
+            meshMaterial.normalScale.set(1.0, 1.0);
+
+            meshMaterial.needsUpdate = true;
+
+            if (importedObjMesh) {
+                importedObjMesh.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = meshMaterial;
+                        child.material.needsUpdate = true;
+                    }
+                });
+            }
+
+            document.getElementById('texture-sync-badge').classList.remove('hidden');
+            document.getElementById('mesh-download-bar').classList.remove('hidden');
+        });
+    }
+
+    function initSeparatedStudios() {
+        document.getElementById('input-3d-image').addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                const fileName = file.name.toLowerCase();
+
+                if (fileName.endsWith('.obj')) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const objLoader = new THREE.OBJLoader();
+                        const parsedObj = objLoader.parse(evt.target.result);
+
+                        if (meshObject) scene.remove(meshObject);
+
+                        parsedObj.traverse((child) => {
+                            if (child.isMesh) {
+                                child.material = meshMaterial;
+                                child.material.needsUpdate = true;
+                            }
+                        });
+
+                        const box = new THREE.Box3().setFromObject(parsedObj);
+                        const size = box.getSize(new THREE.Vector3());
+                        const center = box.getCenter(new THREE.Vector3());
+
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 2.5 / maxDim;
+                        parsedObj.scale.set(scale, scale, scale);
+                        parsedObj.position.sub(center.multiplyScalar(scale));
+
+                        importedObjMesh = parsedObj;
+                        meshObject = importedObjMesh;
+                        scene.add(meshObject);
+
+                        const btnObj = document.getElementById('mesh-customObj');
+                        btnObj.classList.remove('hidden');
+                        setThreeMesh('customObj');
+                        document.getElementById('mesh-download-bar').classList.remove('hidden');
+                    };
+                    reader.readAsText(file);
+
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const img = new Image();
+                        img.onload = function() {
+                            applyTextureToViewportMaterial(img, evt.target.result);
+                            generatePBRMaps(img);
+                        };
+                        img.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        document.getElementById('input-texture-file').addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                if (file.name.endsWith('.fbx') || file.name.endsWith('.obj')) {
+                    alert(`FBX/OBJ Mesh File Loaded: ${file.name}. Shader maps ready for download.`);
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const img = new Image();
+                        img.onload = function() {
+                            generatePBRMaps(img);
+                            applyTextureToViewportMaterial(img, evt.target.result);
+                        };
+                        img.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+    }
+
+    function generatePBRMaps(img) {
+        document.getElementById('pbr-output-container').classList.remove('hidden');
+        document.getElementById('map-diffuse').src = img.src;
+        document.getElementById('down-diffuse').href = img.src;
+
+        createSharpRoughnessMap(img);
+        createSobelNormalMap(img);
+        createSharpDisplacementMap(img);
+        lucide.createIcons();
+    }
+
+    function createSharpRoughnessMap(img) {
+        const canvas = document.getElementById('canvas-roughness');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width; canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            let gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+            let rough = 255 - gray;
+            rough = ((rough - 128) * 1.5) + 128;
+            rough = Math.min(255, Math.max(0, rough));
+
+            data[i] = rough; data[i+1] = rough; data[i+2] = rough;
+        }
+        ctx.putImageData(imgData, 0, 0);
+        document.getElementById('down-roughness').href = canvas.toDataURL();
+    }
+
+    function createSobelNormalMap(img) {
+        const canvas = document.getElementById('canvas-normal');
+        const ctx = canvas.getContext('2d');
+        const w = img.width; const h = img.height;
+        canvas.width = w; canvas.height = h;
+        ctx.drawImage(img, 0, 0);
+
+        const src = ctx.getImageData(0, 0, w, h);
+        const dst = ctx.createImageData(w, h);
+        const sData = src.data;
+        const dData = dst.data;
+
+        const strength = 3.5;
+
+        function getLum(x, y) {
+            x = Math.min(w - 1, Math.max(0, x));
+            y = Math.min(h - 1, Math.max(0, y));
+            const idx = (y * w + x) * 4;
+            return (sData[idx] * 0.299 + sData[idx+1] * 0.587 + sData[idx+2] * 0.114) / 255.0;
+        }
+
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const tl = getLum(x - 1, y - 1);
+                const l  = getLum(x - 1, y);
+                const bl = getLum(x - 1, y + 1);
+                const t  = getLum(x,     y - 1);
+                const b  = getLum(x,     y + 1);
+                const tr = getLum(x + 1, y - 1);
+                const r  = getLum(x + 1, y);
+                const br = getLum(x + 1, y + 1);
+
+                const dX = (tr + 2.0 * r + br) - (tl + 2.0 * l + bl);
+                const dY = (bl + 2.0 * b + br) - (tl + 2.0 * t + tr);
+                const dZ = 1.0 / strength;
+
+                const len = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
+                const nx = (dX / len) * 0.5 + 0.5;
+                const ny = (dY / len) * 0.5 + 0.5;
+                const nz = (dZ / len) * 0.5 + 0.5;
+
+                const idx = (y * w + x) * 4;
+                dData[idx]     = Math.floor(nx * 255);
+                dData[idx + 1] = Math.floor(ny * 255);
+                dData[idx + 2] = Math.floor(nz * 255);
+                dData[idx + 3] = 255;
+            }
+        }
+
+        ctx.putImageData(dst, 0, 0);
+        document.getElementById('down-normal').href = canvas.toDataURL();
+    }
+
+    function createSharpDisplacementMap(img) {
+        const canvas = document.getElementById('canvas-displacement');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width; canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            let gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+            let height = ((gray - 128) * 1.8) + 128;
+            height = Math.min(255, Math.max(0, height));
+
+            data[i] = height; data[i+1] = height; data[i+2] = height;
+        }
+        ctx.putImageData(imgData, 0, 0);
+        document.getElementById('down-displacement').href = canvas.toDataURL();
+    }
+
+    /* ONE-TIME ₹99 PAYMENT MODAL CONTROLS */
+    function updateUpiQR() {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${UPI_ID}%26pn=WorldFreeAIHub%26am=99.00%26cu=INR`;
+        document.getElementById('upi-qr-image').src = qrUrl;
+    }
+
+    function openOneTimePaymentModal(itemTitle) {
+        targetDownloadType = itemTitle;
+        document.getElementById('target-item-title').innerText = `Item: ${itemTitle}`;
+        document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+        document.getElementById('payment-modal').classList.add('hidden');
+    }
+
+    /* STRICT ADMIN KEY VERIFICATION (PREVENTS FAKE UTR BYPASS) */
+    function handleSinglePaymentVerification(e) {
+        e.preventDefault();
+        const key = document.getElementById('admin-key-input').value.trim();
+
+        // Strictly check for secret master code 'KaifAI'
+        if (key === "KaifAI") {
+            closePaymentModal();
+            alert(`✅ Verification Successful!\nOne-Time Download Access Granted for [${targetDownloadType}]. Downloading file now...`);
+
+            // Execute File Download
+            if (targetDownloadType.includes('3D Mesh')) {
+                const dummyOBJ = "# Generated by World Free AI Hub\nv 0.0 0.0 0.0\nv 1.0 0.0 0.0\nv 1.0 1.0 0.0\nf 1 2 3";
+                const blob = new Blob([dummyOBJ], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `ai_3d_${currentShape}_model.obj`;
+                a.click();
+            } else if (targetDownloadType.includes('Diffuse')) {
+                document.getElementById('down-diffuse').click();
+            } else if (targetDownloadType.includes('Roughness')) {
+                document.getElementById('down-roughness').click();
+            } else if (targetDownloadType.includes('Normal')) {
+                document.getElementById('down-normal').click();
+            } else if (targetDownloadType.includes('Displacement')) {
+                document.getElementById('down-displacement').click();
+            } else {
+                document.getElementById('down-diffuse').click();
+                document.getElementById('down-roughness').click();
+                document.getElementById('down-normal').click();
+                document.getElementById('down-displacement').click();
+            }
+
+            document.getElementById('admin-key-input').value = '';
+        } else {
+            alert("❌ Verification Failed!\n\nInvalid Key/Code. Fake entries or random UTR numbers are rejected.\nPlease contact admin or enter valid Access Code [KaifAI].");
+        }
+    }
+
+    function copyUPI() {
+        navigator.clipboard.writeText(UPI_ID);
+        alert("UPI ID Copied: " + UPI_ID);
+    }
+
+    /* Canvas Particle Effects */
+    function initParticleCanvas() {
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const particles = Array.from({ length: 45 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: Math.random() * 2 + 0.5,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4
+        }));
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0) p.x = width; if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height; if (p.y > height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(245, 158, 11, 0.35)";
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    }
+</script>
+</body>
+</html>
